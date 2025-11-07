@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, parseISO } from "date-fns";
 import { Clock, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,20 +35,20 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
   // Get routines for the selected date
   const routinesForSelectedDate = routines.filter((routine) => {
     if (!selectedDate) return false;
-    const routineDate = new Date(routine.date);
+    const routineDate = parseISO(routine.date);
     return isSameDay(routineDate, selectedDate);
   });
 
   // Get calendar events for the selected date
   const eventsForSelectedDate = calendarEvents.filter((event) => {
     if (!selectedDate) return false;
-    const eventDate = new Date(event.event_date);
+    const eventDate = parseISO(event.event_date);
     return isSameDay(eventDate, selectedDate);
   });
 
   // Get dates that have routines or events
-  const datesWithRoutines = routines.map((routine) => new Date(routine.date));
-  const datesWithEvents = calendarEvents.map((event) => new Date(event.event_date));
+  const datesWithRoutines = routines.map((routine) => parseISO(routine.date));
+  const datesWithEvents = calendarEvents.map((event) => parseISO(event.event_date));
   const allDatesWithActivity = [...datesWithRoutines, ...datesWithEvents];
 
   return (

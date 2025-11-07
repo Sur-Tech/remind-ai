@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Clock, Trash2, Pencil, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 interface RoutineCardProps {
   routine: {
@@ -33,7 +33,7 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {format(new Date(routine.date), "MMM d, yyyy")}
+                {format(parseISO(routine.date), "MMM d, yyyy")}
               </span>
             </div>
             <div className="flex items-center gap-2">

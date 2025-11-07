@@ -17,6 +17,7 @@ export const AIRecommendations = () => {
   const [recommendations, setRecommendations] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<{ routineCount: number; eventCount: number } | null>(null);
+  const [lastFetchDate, setLastFetchDate] = useState<string>("");
 
   const fetchRecommendations = async () => {
     try {
@@ -70,8 +71,12 @@ export const AIRecommendations = () => {
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (newOpen && !recommendations) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Fetch if opening dialog AND (no recommendations OR it's a new day)
+    if (newOpen && (!recommendations || lastFetchDate !== today)) {
       fetchRecommendations();
+      setLastFetchDate(today);
     }
   };
 
@@ -80,7 +85,7 @@ export const AIRecommendations = () => {
       <DialogTrigger asChild>
         <Button className="gap-2 bg-gradient-primary hover:opacity-90">
           <Sparkles className="w-4 h-4" />
-          AI Recommendations
+          Your Personalized Routine
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

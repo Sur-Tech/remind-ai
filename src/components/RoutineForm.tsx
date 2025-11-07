@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { CalendarIcon, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +51,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
     if (editingRoutine) {
       setName(editingRoutine.name);
       setTime(editingRoutine.time);
-      setDate(new Date(editingRoutine.date));
+      setDate(parseISO(editingRoutine.date));
       setDescription(editingRoutine.description || "");
       setFrequency(editingRoutine.frequency || "once");
     } else {
