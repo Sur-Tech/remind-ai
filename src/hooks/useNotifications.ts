@@ -15,6 +15,38 @@ interface CalendarEvent {
   description?: string;
 }
 
+// Create a pleasant notification sound using Web Audio API
+const playNotificationSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Create a pleasant chime sound (C major chord)
+    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+    oscillator.type = "sine";
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1.5);
+    
+    // Add second note for harmony
+    const oscillator2 = audioContext.createOscillator();
+    oscillator2.connect(gainNode);
+    oscillator2.frequency.setValueAtTime(659.25, audioContext.currentTime); // E5
+    oscillator2.type = "sine";
+    oscillator2.start(audioContext.currentTime + 0.1);
+    oscillator2.stop(audioContext.currentTime + 1.5);
+  } catch (error) {
+    console.error("Failed to play notification sound:", error);
+  }
+};
+
 export const useNotifications = (routines: Routine[], calendarEvents: CalendarEvent[] = []) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [notifiedItems, setNotifiedItems] = useState<Set<string>>(new Set());
@@ -53,11 +85,13 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
         
         if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
           try {
-            new Notification("⏰ Routine Reminder", {
-              body: routine.description || `Time for: ${routine.name}`,
+            playNotificationSound();
+            new Notification("⏰ Reminder Due Now", {
+              body: `${routine.name}${routine.description ? '\n' + routine.description : ''}`,
               icon: "/favicon.ico",
               badge: "/favicon.ico",
               tag: routineKey,
+              requireInteraction: true,
             });
             setNotifiedItems(prev => new Set(prev).add(routineKey));
             console.log("Notification sent for routine:", routine.name);
@@ -79,11 +113,13 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
 
         if (isNotifyTime && !notifiedItems.has(eventKey)) {
           try {
+            playNotificationSound();
             new Notification("📅 Upcoming Calendar Event", {
               body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
               icon: "/favicon.ico",
               badge: "/favicon.ico",
               tag: eventKey,
+              requireInteraction: true,
             });
             setNotifiedItems(prev => new Set(prev).add(eventKey));
             console.log("Notification sent for event:", event.title);
