@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          email: string | null
+          id: string
+          provider: string
+          refresh_token: string | null
+          token_expiry: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          token_expiry?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          token_expiry?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calendar_events: {
+        Row: {
+          calendar_connection_id: string
+          created_at: string
+          description: string | null
+          end_time: string
+          event_date: string
+          external_event_id: string
+          id: string
+          location: string | null
+          start_time: string
+          synced_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          calendar_connection_id: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          event_date: string
+          external_event_id: string
+          id?: string
+          location?: string | null
+          start_time: string
+          synced_at?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          calendar_connection_id?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          event_date?: string
+          external_event_id?: string
+          id?: string
+          location?: string | null
+          start_time?: string
+          synced_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_calendar_connection_id_fkey"
+            columns: ["calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routines: {
         Row: {
           created_at: string
