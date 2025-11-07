@@ -5,6 +5,7 @@ import { RoutineForm } from "@/components/RoutineForm";
 import { RoutineList } from "@/components/RoutineList";
 import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { TodayEventsDialog } from "@/components/TodayEventsDialog";
+import { AIAssistant } from "@/components/AIAssistant";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -216,6 +217,11 @@ const Index = () => {
             onDeleteRoutine={handleDeleteRoutine}
             onEditRoutine={handleStartEdit}
           />
+        </div>
+
+        {/* AI Assistant */}
+        <div className="w-96 flex-shrink-0">
+          <AIAssistant routines={routines} />
         </div>
       </div>
     </div>
