@@ -17,6 +17,7 @@ interface Routine {
 
 const Index = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
+  const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const { permission, requestPermission } = useNotifications(routines);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -43,9 +44,23 @@ const Index = () => {
     toast.success("Routine added successfully!");
   };
 
+  const handleEditRoutine = (routine: Routine) => {
+    setRoutines((prev) => prev.map((r) => (r.id === routine.id ? routine : r)));
+    setEditingRoutine(null);
+    toast.success("Routine updated successfully!");
+  };
+
   const handleDeleteRoutine = (id: string) => {
     setRoutines((prev) => prev.filter((r) => r.id !== id));
     toast.success("Routine deleted");
+  };
+
+  const handleStartEdit = (routine: Routine) => {
+    setEditingRoutine(routine);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRoutine(null);
   };
 
   const handleSignOut = async () => {
@@ -108,10 +123,19 @@ const Index = () => {
         </header>
 
         {/* Add Routine Form */}
-        <RoutineForm onAddRoutine={handleAddRoutine} />
+        <RoutineForm 
+          onAddRoutine={handleAddRoutine} 
+          onEditRoutine={handleEditRoutine}
+          editingRoutine={editingRoutine}
+          onCancelEdit={handleCancelEdit}
+        />
 
         {/* Routines List */}
-        <RoutineList routines={routines} onDeleteRoutine={handleDeleteRoutine} />
+        <RoutineList 
+          routines={routines} 
+          onDeleteRoutine={handleDeleteRoutine}
+          onEditRoutine={handleStartEdit}
+        />
       </div>
     </div>
   );

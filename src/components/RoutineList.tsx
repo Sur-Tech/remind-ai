@@ -11,9 +11,10 @@ interface Routine {
 interface RoutineListProps {
   routines: Routine[];
   onDeleteRoutine: (id: string) => void;
+  onEditRoutine: (routine: Routine) => void;
 }
 
-export const RoutineList = ({ routines, onDeleteRoutine }: RoutineListProps) => {
+export const RoutineList = ({ routines, onDeleteRoutine, onEditRoutine }: RoutineListProps) => {
   if (routines.length === 0) {
     return (
       <div className="text-center py-16">
@@ -35,6 +36,7 @@ export const RoutineList = ({ routines, onDeleteRoutine }: RoutineListProps) => 
             key={routine.id}
             routine={routine}
             onDelete={onDeleteRoutine}
+            onEdit={onEditRoutine}
           />
         ))}
       </div>

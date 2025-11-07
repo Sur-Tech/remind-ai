@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,26 +13,68 @@ interface RoutineFormProps {
     time: string;
     description?: string;
   }) => void;
+  onEditRoutine?: (routine: {
+    id: string;
+    name: string;
+    time: string;
+    description?: string;
+  }) => void;
+  editingRoutine?: {
+    id: string;
+    name: string;
+    time: string;
+    description?: string;
+  } | null;
+  onCancelEdit?: () => void;
 }
 
-export const RoutineForm = ({ onAddRoutine }: RoutineFormProps) => {
+export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCancelEdit }: RoutineFormProps) => {
   const [name, setName] = useState("");
   const [time, setTime] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name && time) {
-      onAddRoutine({
-        id: crypto.randomUUID(),
-        name,
-        time,
-        description: description || undefined,
-      });
+  // Update form when editingRoutine changes
+  useEffect(() => {
+    if (editingRoutine) {
+      setName(editingRoutine.name);
+      setTime(editingRoutine.time);
+      setDescription(editingRoutine.description || "");
+    } else {
       setName("");
       setTime("");
       setDescription("");
     }
+  }, [editingRoutine]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name && time) {
+      if (editingRoutine && onEditRoutine) {
+        onEditRoutine({
+          id: editingRoutine.id,
+          name,
+          time,
+          description: description || undefined,
+        });
+      } else {
+        onAddRoutine({
+          id: crypto.randomUUID(),
+          name,
+          time,
+          description: description || undefined,
+        });
+      }
+      setName("");
+      setTime("");
+      setDescription("");
+    }
+  };
+
+  const handleCancel = () => {
+    setName("");
+    setTime("");
+    setDescription("");
+    onCancelEdit?.();
   };
 
   return (
@@ -42,7 +84,9 @@ export const RoutineForm = ({ onAddRoutine }: RoutineFormProps) => {
           <div className="p-2 rounded-lg bg-gradient-primary">
             <Bell className="w-5 h-5 text-primary-foreground" />
           </div>
-          <h2 className="text-2xl font-semibold text-foreground">Add New Routine</h2>
+          <h2 className="text-2xl font-semibold text-foreground">
+            {editingRoutine ? "Edit Routine" : "Add New Routine"}
+          </h2>
         </div>
 
         <div className="space-y-2">
@@ -87,12 +131,24 @@ export const RoutineForm = ({ onAddRoutine }: RoutineFormProps) => {
           />
         </div>
 
-        <Button
-          type="submit"
-          className="w-full bg-gradient-primary hover:opacity-90 transition-smooth text-primary-foreground font-medium"
-        >
-          Add Routine
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            type="submit"
+            className="flex-1 bg-gradient-primary hover:opacity-90 transition-smooth text-primary-foreground font-medium"
+          >
+            {editingRoutine ? "Update Routine" : "Add Routine"}
+          </Button>
+          {editingRoutine && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </form>
     </Card>
   );
