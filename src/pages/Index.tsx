@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { RoutineForm } from "@/components/RoutineForm";
 import { RoutineList } from "@/components/RoutineList";
 import { RoutineCalendar } from "@/components/RoutineCalendar";
+import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, BellOff, LogOut } from "lucide-react";
@@ -91,7 +92,8 @@ const Index = () => {
         <div className="flex-1 max-w-3xl space-y-8">
           {/* Header */}
           <header className="text-center space-y-4 py-8">
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <TodayEventsDialog routines={routines} />
               <Button
                 variant="outline"
                 size="sm"

@@ -1,0 +1,116 @@
+import { format, isToday } from "date-fns";
+import { Calendar, Clock, FileText } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+interface Routine {
+  id: string;
+  name: string;
+  time: string;
+  date: string;
+  description?: string;
+}
+
+interface TodayEventsDialogProps {
+  routines: Routine[];
+}
+
+export const TodayEventsDialog = ({ routines }: TodayEventsDialogProps) => {
+  const todayRoutines = routines.filter((routine) => {
+    const routineDate = new Date(routine.date);
+    return isToday(routineDate);
+  }).sort((a, b) => a.time.localeCompare(b.time));
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="gap-2 relative hover:border-primary transition-smooth"
+        >
+          <Calendar className="w-4 h-4" />
+          Today's Events
+          {todayRoutines.length > 0 && (
+            <Badge
+              variant="default"
+              className="ml-1 bg-primary text-primary-foreground"
+            >
+              {todayRoutines.length}
+            </Badge>
+          )}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <div className="p-2 rounded-lg bg-gradient-primary">
+              <Calendar className="w-5 h-5 text-primary-foreground" />
+            </div>
+            Today's Events
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4 mt-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            <span>{format(new Date(), "EEEE, MMMM d, yyyy")}</span>
+          </div>
+
+          {todayRoutines.length > 0 ? (
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+              {todayRoutines.map((routine) => (
+                <div
+                  key={routine.id}
+                  className="p-4 rounded-lg border border-border/50 bg-card hover:bg-accent/10 transition-smooth"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-lg font-semibold text-foreground flex-1">
+                        {routine.name}
+                      </h3>
+                      <Badge variant="secondary" className="flex items-center gap-1 font-mono">
+                        <Clock className="w-3 h-3" />
+                        {routine.time}
+                      </Badge>
+                    </div>
+                    
+                    {routine.description && (
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <p className="flex-1">{routine.description}</p>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/30">
+                      <Calendar className="w-3 h-3" />
+                      <span>Scheduled for {format(new Date(routine.date), "PPP")}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/50 mb-4">
+                <Calendar className="w-8 h-8 text-accent-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No events today
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                You have no routines scheduled for today.
+              </p>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
