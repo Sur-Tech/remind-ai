@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 
 interface RoutineFormProps {
   onAddRoutine: (routine: {
-    id: string;
     name: string;
     time: string;
     date: string;
@@ -70,7 +69,6 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
         });
       } else {
         onAddRoutine({
-          id: crypto.randomUUID(),
           name,
           time,
           date: format(date, "yyyy-MM-dd"),

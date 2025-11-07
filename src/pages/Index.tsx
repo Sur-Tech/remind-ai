@@ -7,6 +7,7 @@ import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Bell, BellOff, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ interface Routine {
 const Index = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { permission, requestPermission } = useNotifications(routines);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -31,31 +33,98 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  // Fetch routines from database
   useEffect(() => {
-    const stored = localStorage.getItem("routines");
-    if (stored) {
-      setRoutines(JSON.parse(stored));
+    if (user) {
+      fetchRoutines();
     }
-  }, []);
+  }, [user]);
 
-  useEffect(() => {
-    localStorage.setItem("routines", JSON.stringify(routines));
-  }, [routines]);
+  const fetchRoutines = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("routines")
+        .select("*")
+        .order("date", { ascending: true })
+        .order("time", { ascending: true });
 
-  const handleAddRoutine = (routine: Routine) => {
-    setRoutines((prev) => [...prev, routine]);
-    toast.success("Routine added successfully!");
+      if (error) throw error;
+
+      if (data) {
+        setRoutines(data);
+      }
+    } catch (error) {
+      console.error("Error fetching routines:", error);
+      toast.error("Failed to load routines");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEditRoutine = (routine: Routine) => {
-    setRoutines((prev) => prev.map((r) => (r.id === routine.id ? routine : r)));
-    setEditingRoutine(null);
-    toast.success("Routine updated successfully!");
+  const handleAddRoutine = async (routine: Omit<Routine, "id">) => {
+    try {
+      const { data, error } = await supabase
+        .from("routines")
+        .insert([
+          {
+            user_id: user?.id,
+            name: routine.name,
+            time: routine.time,
+            date: routine.date,
+            description: routine.description,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setRoutines((prev) => [...prev, data]);
+        toast.success("Routine added successfully!");
+      }
+    } catch (error) {
+      console.error("Error adding routine:", error);
+      toast.error("Failed to add routine");
+    }
   };
 
-  const handleDeleteRoutine = (id: string) => {
-    setRoutines((prev) => prev.filter((r) => r.id !== id));
-    toast.success("Routine deleted");
+  const handleEditRoutine = async (routine: Routine) => {
+    try {
+      const { error } = await supabase
+        .from("routines")
+        .update({
+          name: routine.name,
+          time: routine.time,
+          date: routine.date,
+          description: routine.description,
+        })
+        .eq("id", routine.id);
+
+      if (error) throw error;
+
+      setRoutines((prev) => prev.map((r) => (r.id === routine.id ? routine : r)));
+      setEditingRoutine(null);
+      toast.success("Routine updated successfully!");
+    } catch (error) {
+      console.error("Error updating routine:", error);
+      toast.error("Failed to update routine");
+    }
+  };
+
+  const handleDeleteRoutine = async (id: string) => {
+    try {
+      const { error } = await supabase.from("routines").delete().eq("id", id);
+
+      if (error) throw error;
+
+      setRoutines((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Routine deleted");
+    } catch (error) {
+      console.error("Error deleting routine:", error);
+      toast.error("Failed to delete routine");
+    }
   };
 
   const handleStartEdit = (routine: Routine) => {
@@ -72,7 +141,7 @@ const Index = () => {
     navigate("/auth");
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
         <div className="text-foreground">Loading...</div>
