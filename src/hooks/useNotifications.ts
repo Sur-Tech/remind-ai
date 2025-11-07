@@ -17,6 +17,7 @@ interface CalendarEvent {
 
 export const useNotifications = (routines: Routine[], calendarEvents: CalendarEvent[] = []) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [notifiedItems, setNotifiedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -39,49 +40,82 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
   useEffect(() => {
     if (permission !== "granted" || (routines.length === 0 && calendarEvents.length === 0)) return;
 
-    const checkRoutines = () => {
+    const checkNotifications = () => {
       const now = new Date();
       const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(
         now.getMinutes()
       ).padStart(2, "0")}`;
+      const currentDate = now.toISOString().split('T')[0];
 
       // Check routines
       routines.forEach((routine) => {
-        if (routine.time === currentTime) {
-          new Notification("⏰ Routine Reminder", {
-            body: routine.description || `Time for: ${routine.name}`,
-            icon: "/favicon.ico",
-            badge: "/favicon.ico",
-          });
+        const routineKey = `routine-${routine.id}-${currentDate}-${currentTime}`;
+        
+        if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
+          try {
+            new Notification("⏰ Routine Reminder", {
+              body: routine.description || `Time for: ${routine.name}`,
+              icon: "/favicon.ico",
+              badge: "/favicon.ico",
+              tag: routineKey,
+            });
+            setNotifiedItems(prev => new Set(prev).add(routineKey));
+            console.log("Notification sent for routine:", routine.name);
+          } catch (error) {
+            console.error("Failed to send notification:", error);
+          }
         }
       });
 
       // Check calendar events (notify 5 minutes before)
       calendarEvents.forEach((event) => {
         const eventTime = new Date(event.start_time);
-        const notifyTime = new Date(eventTime.getTime() - 5 * 60000); // 5 minutes before
+        const notifyTime = new Date(eventTime.getTime() - 5 * 60000);
+        const eventKey = `event-${event.id}-${currentDate}`;
         
-        if (
+        const isNotifyTime = 
           now.getHours() === notifyTime.getHours() &&
-          now.getMinutes() === notifyTime.getMinutes()
-        ) {
-          new Notification("📅 Upcoming Calendar Event", {
-            body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
-            icon: "/favicon.ico",
-            badge: "/favicon.ico",
-          });
+          now.getMinutes() === notifyTime.getMinutes();
+
+        if (isNotifyTime && !notifiedItems.has(eventKey)) {
+          try {
+            new Notification("📅 Upcoming Calendar Event", {
+              body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
+              icon: "/favicon.ico",
+              badge: "/favicon.ico",
+              tag: eventKey,
+            });
+            setNotifiedItems(prev => new Set(prev).add(eventKey));
+            console.log("Notification sent for event:", event.title);
+          } catch (error) {
+            console.error("Failed to send notification:", error);
+          }
         }
       });
     };
 
-    // Check every minute
-    const interval = setInterval(checkRoutines, 60000);
+    // Check immediately
+    checkNotifications();
     
-    // Also check immediately
-    checkRoutines();
+    // Check every minute
+    const interval = setInterval(checkNotifications, 60000);
 
     return () => clearInterval(interval);
-  }, [routines, calendarEvents, permission]);
+  }, [routines, calendarEvents, permission, notifiedItems]);
+
+  // Clear notified items at midnight
+  useEffect(() => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setHours(24, 0, 0, 0);
+    const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+
+    const timeout = setTimeout(() => {
+      setNotifiedItems(new Set());
+    }, timeUntilMidnight);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   return { permission, requestPermission };
 };
