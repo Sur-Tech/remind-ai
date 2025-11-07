@@ -6,6 +6,7 @@ import { RoutineList } from "@/components/RoutineList";
 import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { CalendarConnection } from "@/components/CalendarConnection";
+import { AIRecommendations } from "@/components/AIRecommendations";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -195,15 +196,18 @@ const Index = () => {
           <header className="text-center space-y-4 py-8">
             <div className="flex justify-between items-center mb-4">
               <TodayEventsDialog routines={routines} />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-                className="gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </Button>
+              <div className="flex gap-2">
+                <AIRecommendations />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </Button>
+              </div>
             </div>
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-4">
               <Bell className="w-8 h-8 text-primary-foreground" />
