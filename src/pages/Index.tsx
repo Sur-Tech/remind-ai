@@ -5,6 +5,7 @@ import { RoutineForm } from "@/components/RoutineForm";
 import { RoutineList } from "@/components/RoutineList";
 import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { TodayEventsDialog } from "@/components/TodayEventsDialog";
+import { CalendarConnection } from "@/components/CalendarConnection";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,11 +20,22 @@ interface Routine {
   description?: string;
 }
 
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  event_date: string;
+  description?: string;
+  location?: string;
+}
+
 const Index = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { permission, requestPermission } = useNotifications(routines);
+  const { permission, requestPermission } = useNotifications(routines, calendarEvents);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -33,10 +45,11 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch routines from database
+  // Fetch routines and calendar events from database
   useEffect(() => {
     if (user) {
       fetchRoutines();
+      fetchCalendarEvents();
     }
   }, [user]);
 
@@ -59,6 +72,25 @@ const Index = () => {
       toast.error("Failed to load routines");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchCalendarEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("calendar_events")
+        .select("*")
+        .gte("event_date", new Date().toISOString().split('T')[0])
+        .order("event_date", { ascending: true })
+        .order("start_time", { ascending: true });
+
+      if (error) throw error;
+
+      if (data) {
+        setCalendarEvents(data);
+      }
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
     }
   };
 
@@ -201,6 +233,46 @@ const Index = () => {
               </Button>
             )}
           </header>
+
+          {/* Calendar Connection */}
+          <CalendarConnection />
+
+          {/* Calendar Events */}
+          {calendarEvents.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-foreground">Upcoming Calendar Events</h2>
+              <div className="space-y-2">
+                {calendarEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="p-4 rounded-lg bg-card border border-border hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">{event.title}</h3>
+                        {event.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                        )}
+                        {event.location && (
+                          <p className="text-sm text-muted-foreground mt-1">📍 {event.location}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-foreground">
+                          {new Date(event.start_time).toLocaleDateString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {' - '}
+                          {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add Routine Form */}
           <RoutineForm 

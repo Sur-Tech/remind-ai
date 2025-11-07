@@ -8,7 +8,14 @@ interface Routine {
   description?: string;
 }
 
-export const useNotifications = (routines: Routine[]) => {
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start_time: string;
+  description?: string;
+}
+
+export const useNotifications = (routines: Routine[], calendarEvents: CalendarEvent[] = []) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
   useEffect(() => {
@@ -30,7 +37,7 @@ export const useNotifications = (routines: Routine[]) => {
   };
 
   useEffect(() => {
-    if (permission !== "granted" || routines.length === 0) return;
+    if (permission !== "granted" || (routines.length === 0 && calendarEvents.length === 0)) return;
 
     const checkRoutines = () => {
       const now = new Date();
@@ -38,10 +45,28 @@ export const useNotifications = (routines: Routine[]) => {
         now.getMinutes()
       ).padStart(2, "0")}`;
 
+      // Check routines
       routines.forEach((routine) => {
         if (routine.time === currentTime) {
           new Notification("⏰ Routine Reminder", {
             body: routine.description || `Time for: ${routine.name}`,
+            icon: "/favicon.ico",
+            badge: "/favicon.ico",
+          });
+        }
+      });
+
+      // Check calendar events (notify 5 minutes before)
+      calendarEvents.forEach((event) => {
+        const eventTime = new Date(event.start_time);
+        const notifyTime = new Date(eventTime.getTime() - 5 * 60000); // 5 minutes before
+        
+        if (
+          now.getHours() === notifyTime.getHours() &&
+          now.getMinutes() === notifyTime.getMinutes()
+        ) {
+          new Notification("📅 Upcoming Calendar Event", {
+            body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
             icon: "/favicon.ico",
             badge: "/favicon.ico",
           });
@@ -56,7 +81,7 @@ export const useNotifications = (routines: Routine[]) => {
     checkRoutines();
 
     return () => clearInterval(interval);
-  }, [routines, permission]);
+  }, [routines, calendarEvents, permission]);
 
   return { permission, requestPermission };
 };
