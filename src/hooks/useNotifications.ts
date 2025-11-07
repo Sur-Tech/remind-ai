@@ -30,10 +30,10 @@ const playNotificationSound = () => {
     oscillator.type = "sine";
     
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2.0);
     
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 1.5);
+    oscillator.stop(audioContext.currentTime + 2.0);
     
     // Add second note for harmony
     const oscillator2 = audioContext.createOscillator();
@@ -41,7 +41,7 @@ const playNotificationSound = () => {
     oscillator2.frequency.setValueAtTime(659.25, audioContext.currentTime); // E5
     oscillator2.type = "sine";
     oscillator2.start(audioContext.currentTime + 0.1);
-    oscillator2.stop(audioContext.currentTime + 1.5);
+    oscillator2.stop(audioContext.currentTime + 2.0);
   } catch (error) {
     console.error("Failed to play notification sound:", error);
   }
