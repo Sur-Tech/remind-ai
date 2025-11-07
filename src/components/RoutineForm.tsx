@@ -1,28 +1,36 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Bell } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RoutineFormProps {
   onAddRoutine: (routine: {
     id: string;
     name: string;
     time: string;
+    date: string;
     description?: string;
   }) => void;
   onEditRoutine?: (routine: {
     id: string;
     name: string;
     time: string;
+    date: string;
     description?: string;
   }) => void;
   editingRoutine?: {
     id: string;
     name: string;
     time: string;
+    date: string;
     description?: string;
   } | null;
   onCancelEdit?: () => void;
@@ -31,6 +39,7 @@ interface RoutineFormProps {
 export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCancelEdit }: RoutineFormProps) => {
   const [name, setName] = useState("");
   const [time, setTime] = useState("");
+  const [date, setDate] = useState<Date>();
   const [description, setDescription] = useState("");
 
   // Update form when editingRoutine changes
@@ -38,22 +47,25 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
     if (editingRoutine) {
       setName(editingRoutine.name);
       setTime(editingRoutine.time);
+      setDate(new Date(editingRoutine.date));
       setDescription(editingRoutine.description || "");
     } else {
       setName("");
       setTime("");
+      setDate(undefined);
       setDescription("");
     }
   }, [editingRoutine]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && time) {
+    if (name && time && date) {
       if (editingRoutine && onEditRoutine) {
         onEditRoutine({
           id: editingRoutine.id,
           name,
           time,
+          date: format(date, "yyyy-MM-dd"),
           description: description || undefined,
         });
       } else {
@@ -61,11 +73,13 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           id: crypto.randomUUID(),
           name,
           time,
+          date: format(date, "yyyy-MM-dd"),
           description: description || undefined,
         });
       }
       setName("");
       setTime("");
+      setDate(undefined);
       setDescription("");
     }
   };
@@ -73,6 +87,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
   const handleCancel = () => {
     setName("");
     setTime("");
+    setDate(undefined);
     setDescription("");
     onCancelEdit?.();
   };
@@ -103,18 +118,49 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="time" className="text-foreground font-medium">
-            Time
-          </Label>
-          <Input
-            id="time"
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-            className="border-input bg-background"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-foreground font-medium">
+              Date
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="time" className="text-foreground font-medium">
+              Time
+            </Label>
+            <Input
+              id="time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              required
+              className="border-input bg-background"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

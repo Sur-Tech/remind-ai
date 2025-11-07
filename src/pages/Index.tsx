@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RoutineForm } from "@/components/RoutineForm";
 import { RoutineList } from "@/components/RoutineList";
+import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { Bell, BellOff, LogOut } from "lucide-react";
@@ -12,6 +13,7 @@ interface Routine {
   id: string;
   name: string;
   time: string;
+  date: string;
   description?: string;
 }
 
@@ -79,63 +81,71 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Header */}
-        <header className="text-center space-y-4 py-8">
-          <div className="flex justify-end mb-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </Button>
-          </div>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-4">
-            <Bell className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-4xl font-bold text-foreground">Log Your Routine</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Stay on track with your daily routines. Set reminders and receive desktop notifications at the perfect time.
-          </p>
-          
-          {/* Notification Permission */}
-          {permission !== "granted" && (
-            <Button
-              onClick={requestPermission}
-              className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {permission === "denied" ? (
-                <>
-                  <BellOff className="w-4 h-4 mr-2" />
-                  Notifications Blocked
-                </>
-              ) : (
-                <>
-                  <Bell className="w-4 h-4 mr-2" />
-                  Enable Notifications
-                </>
-              )}
-            </Button>
-          )}
-        </header>
+      <div className="flex gap-6 px-4 py-8">
+        {/* Calendar Section */}
+        <div className="w-80 flex-shrink-0">
+          <RoutineCalendar routines={routines} />
+        </div>
 
-        {/* Add Routine Form */}
-        <RoutineForm 
-          onAddRoutine={handleAddRoutine} 
-          onEditRoutine={handleEditRoutine}
-          editingRoutine={editingRoutine}
-          onCancelEdit={handleCancelEdit}
-        />
+        {/* Main Content */}
+        <div className="flex-1 max-w-3xl space-y-8">
+          {/* Header */}
+          <header className="text-center space-y-4 py-8">
+            <div className="flex justify-end mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </Button>
+            </div>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-4">
+              <Bell className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-4xl font-bold text-foreground">Log Your Routine</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Stay on track with your daily routines. Set reminders and receive desktop notifications at the perfect time.
+            </p>
+            
+            {/* Notification Permission */}
+            {permission !== "granted" && (
+              <Button
+                onClick={requestPermission}
+                className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {permission === "denied" ? (
+                  <>
+                    <BellOff className="w-4 h-4 mr-2" />
+                    Notifications Blocked
+                  </>
+                ) : (
+                  <>
+                    <Bell className="w-4 h-4 mr-2" />
+                    Enable Notifications
+                  </>
+                )}
+              </Button>
+            )}
+          </header>
 
-        {/* Routines List */}
-        <RoutineList 
-          routines={routines} 
-          onDeleteRoutine={handleDeleteRoutine}
-          onEditRoutine={handleStartEdit}
-        />
+          {/* Add Routine Form */}
+          <RoutineForm 
+            onAddRoutine={handleAddRoutine} 
+            onEditRoutine={handleEditRoutine}
+            editingRoutine={editingRoutine}
+            onCancelEdit={handleCancelEdit}
+          />
+
+          {/* Routines List */}
+          <RoutineList 
+            routines={routines} 
+            onDeleteRoutine={handleDeleteRoutine}
+            onEditRoutine={handleStartEdit}
+          />
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ interface Routine {
   id: string;
   name: string;
   time: string;
+  date: string;
   description?: string;
 }
 

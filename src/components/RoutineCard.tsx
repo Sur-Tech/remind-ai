@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, Pencil } from "lucide-react";
+import { Clock, Trash2, Pencil, Calendar } from "lucide-react";
+import { format } from "date-fns";
 
 interface RoutineCardProps {
   routine: {
     id: string;
     name: string;
     time: string;
+    date: string;
     description?: string;
   };
   onDelete: (id: string) => void;
@@ -14,6 +16,7 @@ interface RoutineCardProps {
     id: string;
     name: string;
     time: string;
+    date: string;
     description?: string;
   }) => void;
 }
@@ -26,9 +29,17 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
           <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-smooth">
             {routine.name}
           </h3>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm font-medium">{routine.time}</span>
+          <div className="flex items-center gap-4 text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {format(new Date(routine.date), "MMM d, yyyy")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">{routine.time}</span>
+            </div>
           </div>
           {routine.description && (
             <p className="text-sm text-muted-foreground mt-2">{routine.description}</p>
