@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -52,6 +52,11 @@ export const AIRecommendations = () => {
       console.error('Error:', error);
     }
   };
+
+  // Check on mount
+  useEffect(() => {
+    checkForUnreadRecommendations();
+  }, []);
 
   const fetchRecommendations = async () => {
     try {
