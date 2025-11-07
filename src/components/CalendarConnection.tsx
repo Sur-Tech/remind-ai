@@ -56,20 +56,34 @@ export const CalendarConnection = () => {
 
   const connectCalendar = async () => {
     try {
+      console.log('Starting Google Calendar connection...');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast.error('Please sign in to connect your calendar');
         return;
       }
 
+      console.log('Calling google-calendar-auth edge function...');
       const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
 
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (!data?.authUrl) {
+        console.error('No authUrl returned from edge function');
+        toast.error('Failed to get authorization URL');
+        return;
+      }
+
+      console.log('Opening OAuth popup with URL:', data.authUrl);
       // Open OAuth popup
       const popup = window.open(
         data.authUrl,
@@ -82,7 +96,7 @@ export const CalendarConnection = () => {
       }
     } catch (error) {
       console.error('Error connecting calendar:', error);
-      toast.error('Failed to connect calendar');
+      toast.error('Failed to connect calendar. Check console for details.');
     }
   };
 
