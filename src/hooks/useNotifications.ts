@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 interface Routine {
   id: string;
@@ -62,9 +62,9 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
       const result = await Notification.requestPermission();
       setPermission(result);
       if (result === "granted") {
-        toast.success("Notifications enabled! You'll receive reminders at the scheduled times.");
+        sonnerToast.success("Notifications enabled! You'll receive reminders at the scheduled times.");
       } else {
-        toast.error("Notifications denied. Please enable them in your browser settings.");
+        sonnerToast.error("Notifications denied. Please enable them in your browser settings.");
       }
     }
   };
@@ -86,6 +86,14 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
         if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
           try {
             playNotificationSound();
+            
+            // Show on-screen toast notification
+            sonnerToast.success(`⏰ It's time for ${routine.name}`, {
+              description: routine.description || undefined,
+              duration: 5000,
+            });
+            
+            // Show desktop notification
             new Notification("⏰ Reminder Due Now", {
               body: `${routine.name}${routine.description ? '\n' + routine.description : ''}`,
               icon: "/favicon.ico",
@@ -114,6 +122,14 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
         if (isNotifyTime && !notifiedItems.has(eventKey)) {
           try {
             playNotificationSound();
+            
+            // Show on-screen toast notification
+            sonnerToast.info(`📅 ${event.title} starts in 5 minutes`, {
+              description: event.description || undefined,
+              duration: 5000,
+            });
+            
+            // Show desktop notification
             new Notification("📅 Upcoming Calendar Event", {
               body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
               icon: "/favicon.ico",
