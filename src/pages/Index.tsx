@@ -19,6 +19,7 @@ interface Routine {
   time: string;
   date: string;
   description?: string;
+  frequency: string;
 }
 
 interface CalendarEvent {
@@ -187,7 +188,7 @@ const Index = () => {
       <div className="flex gap-6 px-4 py-8">
         {/* Calendar Section */}
         <div className="w-80 flex-shrink-0">
-          <RoutineCalendar routines={routines} />
+          <RoutineCalendar routines={routines} calendarEvents={calendarEvents} />
         </div>
 
         {/* Main Content */}

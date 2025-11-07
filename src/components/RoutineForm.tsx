@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ interface RoutineFormProps {
     time: string;
     date: string;
     description?: string;
+    frequency: string;
   }) => void;
   onEditRoutine?: (routine: {
     id: string;
@@ -24,6 +26,7 @@ interface RoutineFormProps {
     time: string;
     date: string;
     description?: string;
+    frequency: string;
   }) => void;
   editingRoutine?: {
     id: string;
@@ -31,6 +34,7 @@ interface RoutineFormProps {
     time: string;
     date: string;
     description?: string;
+    frequency?: string;
   } | null;
   onCancelEdit?: () => void;
 }
@@ -40,6 +44,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
   const [time, setTime] = useState("");
   const [date, setDate] = useState<Date>();
   const [description, setDescription] = useState("");
+  const [frequency, setFrequency] = useState("once");
 
   // Update form when editingRoutine changes
   useEffect(() => {
@@ -48,11 +53,13 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
       setTime(editingRoutine.time);
       setDate(new Date(editingRoutine.date));
       setDescription(editingRoutine.description || "");
+      setFrequency(editingRoutine.frequency || "once");
     } else {
       setName("");
       setTime("");
       setDate(undefined);
       setDescription("");
+      setFrequency("once");
     }
   }, [editingRoutine]);
 
@@ -66,6 +73,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           time,
           date: format(date, "yyyy-MM-dd"),
           description: description || undefined,
+          frequency,
         });
       } else {
         onAddRoutine({
@@ -73,12 +81,14 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           time,
           date: format(date, "yyyy-MM-dd"),
           description: description || undefined,
+          frequency,
         });
       }
       setName("");
       setTime("");
       setDate(undefined);
       setDescription("");
+      setFrequency("once");
     }
   };
 
@@ -87,6 +97,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
     setTime("");
     setDate(undefined);
     setDescription("");
+    setFrequency("once");
     onCancelEdit?.();
   };
 
@@ -159,6 +170,24 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
               className="border-input bg-background"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="frequency" className="text-foreground font-medium flex items-center gap-2">
+            <Repeat className="w-4 h-4 text-primary" />
+            Frequency
+          </Label>
+          <Select value={frequency} onValueChange={setFrequency}>
+            <SelectTrigger className="border-input bg-background">
+              <SelectValue placeholder="Select frequency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="once">Once</SelectItem>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
