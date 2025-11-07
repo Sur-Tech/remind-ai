@@ -47,6 +47,32 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  // Check for new AI recommendations on mount
+  useEffect(() => {
+    const checkNewRecommendations = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('ai_recommendations')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .eq('read', false)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        toast.success("🎯 New AI routine recommendations available!", {
+          description: "Click 'Your Personalized Routine' to view them",
+          duration: 5000,
+        });
+      }
+    };
+
+    if (user) {
+      checkNewRecommendations();
+    }
+  }, [user]);
+
   // Fetch routines and calendar events from database
   useEffect(() => {
     if (user) {

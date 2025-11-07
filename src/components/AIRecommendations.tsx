@@ -18,6 +18,40 @@ export const AIRecommendations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [stats, setStats] = useState<{ routineCount: number; eventCount: number } | null>(null);
   const [lastFetchDate, setLastFetchDate] = useState<string>("");
+  const [hasUnreadRecommendations, setHasUnreadRecommendations] = useState(false);
+
+  // Check for unread AI-generated recommendations
+  const checkForUnreadRecommendations = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase
+        .from('ai_recommendations')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('read', false)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error checking recommendations:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setHasUnreadRecommendations(true);
+        // Auto-load the latest recommendation
+        setRecommendations(data[0].recommendations);
+        setStats({
+          routineCount: data[0].routine_count,
+          eventCount: data[0].event_count
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   const fetchRecommendations = async () => {
     try {
@@ -69,23 +103,44 @@ export const AIRecommendations = () => {
     }
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
+  const handleOpenChange = async (newOpen: boolean) => {
     setOpen(newOpen);
-    const today = new Date().toISOString().split('T')[0];
     
-    // Fetch if opening dialog AND (no recommendations OR it's a new day)
-    if (newOpen && (!recommendations || lastFetchDate !== today)) {
-      fetchRecommendations();
-      setLastFetchDate(today);
+    if (newOpen) {
+      // Check for stored recommendations first
+      await checkForUnreadRecommendations();
+      
+      // Mark as read if there are unread recommendations
+      if (hasUnreadRecommendations) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase
+            .from('ai_recommendations')
+            .update({ read: true })
+            .eq('user_id', session.user.id)
+            .eq('read', false);
+          setHasUnreadRecommendations(false);
+        }
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      // Only fetch fresh recommendations if it's a new day and we want to override stored ones
+      if (!recommendations || lastFetchDate !== today) {
+        // Don't auto-fetch, let user click refresh if they want fresh recommendations
+        setLastFetchDate(today);
+      }
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="gap-2 bg-gradient-primary hover:opacity-90">
+        <Button className="gap-2 bg-gradient-primary hover:opacity-90 relative">
           <Sparkles className="w-4 h-4" />
           Your Personalized Routine
+          {hasUnreadRecommendations && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full animate-pulse" />
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

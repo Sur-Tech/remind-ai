@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_recommendations: {
+        Row: {
+          created_at: string
+          event_count: number
+          id: string
+          read: boolean
+          recommendations: string
+          routine_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_count?: number
+          id?: string
+          read?: boolean
+          recommendations: string
+          routine_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_count?: number
+          id?: string
+          read?: boolean
+          recommendations?: string
+          routine_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string
