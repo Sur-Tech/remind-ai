@@ -156,6 +156,17 @@ EXAMPLES:
 - "move my homework to tomorrow" → Use update_routine to change the date
 - "add location to my meeting" → Use update_routine to add location
 
+DELETING ROUTINES:
+When users ask to delete, remove, cancel, or clear a routine:
+1. Look at their current schedule in the context above
+2. Identify which routine they're referring to (by name, date, or time)
+3. Use the delete_routine tool with the routine's name and date to identify it
+
+EXAMPLES:
+- "delete Visit Mom" → Use delete_routine with the routine name and date
+- "remove my homework on Nov 15" → Use delete_routine to remove the specific routine
+- "cancel my meeting tomorrow" → Use delete_routine with calculated tomorrow's date
+
 DATE HANDLING:
 - Current date is ${new Date().toISOString().split('T')[0]}
 - If the user says "tomorrow", calculate tomorrow's date
@@ -238,6 +249,28 @@ Always address users warmly and reference their actual schedule when relevant.`
                   new_location: {
                     type: "string",
                     description: "New or updated location (optional)"
+                  }
+                },
+                required: ["routine_name", "routine_date"],
+                additionalProperties: false
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "delete_routine",
+              description: "Delete an existing routine. Use this when the user wants to delete, remove, cancel, or clear a routine from their schedule.",
+              parameters: {
+                type: "object",
+                properties: {
+                  routine_name: {
+                    type: "string",
+                    description: "The name of the routine to delete (must match existing routine name)"
+                  },
+                  routine_date: {
+                    type: "string",
+                    description: "The date of the routine to delete in YYYY-MM-DD format (must match existing routine date)"
                   }
                 },
                 required: ["routine_name", "routine_date"],

@@ -256,6 +256,50 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
                 } catch (parseError) {
                   console.error("Error parsing tool arguments:", parseError);
                 }
+              } else if (toolCallName === "delete_routine") {
+                try {
+                  const args = JSON.parse(toolCallArgs);
+                  console.log("Deleting routine with args:", args);
+                  
+                  // Delete the routine from the database
+                  const { error: deleteError } = await supabase
+                    .from('routines')
+                    .delete()
+                    .eq('user_id', session.user.id)
+                    .eq('name', args.routine_name)
+                    .eq('date', args.routine_date);
+
+                  if (deleteError) {
+                    console.error("Error deleting routine:", deleteError);
+                    setMessages((prev) => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        role: "assistant",
+                        content: `I tried to delete the routine, but there was an error: ${deleteError.message}. Please try again.`,
+                      };
+                      return updated;
+                    });
+                  } else {
+                    // Success - show confirmation message
+                    setMessages((prev) => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        role: "assistant",
+                        content: `✅ Done! I've deleted "${args.routine_name}" from ${args.routine_date}. The page will refresh to show the updated schedule.`,
+                      };
+                      return updated;
+                    });
+                    
+                    toast.success(`Routine "${args.routine_name}" deleted successfully!`);
+                    
+                    // Refresh the page after a short delay
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 2000);
+                  }
+                } catch (parseError) {
+                  console.error("Error parsing tool arguments:", parseError);
+                }
               }
             }
           } catch {
