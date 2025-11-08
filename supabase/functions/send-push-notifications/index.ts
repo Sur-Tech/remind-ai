@@ -17,22 +17,20 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get routines starting in the next 30 minutes
+    // Get routines starting in exactly 5 minutes
     const now = new Date()
-    const thirtyMinutesLater = new Date(now.getTime() + 30 * 60000)
+    const fiveMinutesLater = new Date(now.getTime() + 5 * 60000)
     
     const today = now.toISOString().split('T')[0]
-    const timeNow = now.toTimeString().substring(0, 5)
-    const timeThirtyMin = thirtyMinutesLater.toTimeString().substring(0, 5)
+    const timeFiveMin = fiveMinutesLater.toTimeString().substring(0, 5)
 
-    console.log(`Checking for routines between ${timeNow} and ${timeThirtyMin} on ${today}`)
+    console.log(`Checking for routines starting at ${timeFiveMin} on ${today}`)
 
     const { data: routines, error: routinesError } = await supabaseClient
       .from('routines')
       .select('id, name, time, user_id, date')
       .eq('date', today)
-      .gte('time', timeNow)
-      .lte('time', timeThirtyMin)
+      .eq('time', timeFiveMin)
 
     if (routinesError) {
       console.error('Error fetching routines:', routinesError)
