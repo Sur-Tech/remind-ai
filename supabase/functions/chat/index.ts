@@ -125,7 +125,7 @@ ${userDataContext}
 SCHEDULING MULTIPLE EVENTS:
 When users provide a list of events they want to do on a specific day, you should:
 1. Prioritize the events based on importance (work/study > chores > leisure/entertainment)
-2. Create a logical schedule by calling create_routine for EACH event
+2. **CRITICAL: Call create_routine for EVERY SINGLE EVENT the user mentions - do not skip any**
 3. Assign appropriate times based on priority and typical activity patterns:
    - Important tasks (homework, work, meetings) should be scheduled earlier in the day
    - Chores and errands in the middle
@@ -137,6 +137,9 @@ EXAMPLE PRIORITIZATION:
 - Homework, work, studying → High priority, schedule early (morning/afternoon)
 - Exercise, chores, errands → Medium priority, schedule mid-day
 - Entertainment (TV, gaming, socializing) → Low priority, schedule evening
+
+EXAMPLE: If user says "I have 3 things: play fortnite, finish homework, watch tv on Nov 15"
+→ You MUST create 3 routines: homework (high priority, early), watch tv (medium), play fortnite (low priority, evening)
 
 When users ask you to add, create, or schedule routines, use the create_routine tool for each routine. Extract the routine details from their message (name, time, date, description, location if provided).
 
