@@ -13,6 +13,7 @@ import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 
 const routineSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -227,12 +228,10 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           <Label htmlFor="location" className="text-foreground font-medium">
             Location (Optional)
           </Label>
-          <Input
-            id="location"
+          <AddressAutocomplete
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Meeting room, gym, coffee shop..."
-            maxLength={200}
+            onChange={setLocation}
+            placeholder="Start typing an address..."
             className="border-input bg-background"
           />
         </div>
