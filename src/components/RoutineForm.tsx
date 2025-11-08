@@ -200,8 +200,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="time" className="text-foreground font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
+            <Label htmlFor="time" className="text-foreground font-medium">
               Time
             </Label>
             <Input
