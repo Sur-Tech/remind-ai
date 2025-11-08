@@ -270,7 +270,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       {/* Top Logo */}
       <div className="px-8 pt-6">
-        <h1 className="text-3xl font-bold text-primary">Remind AI</h1>
+        <h1 className="text-3xl font-bold text-primary font-orbitron">Remind AI</h1>
       </div>
       
       <div className="flex gap-6 px-4 py-8">
