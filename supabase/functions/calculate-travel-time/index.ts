@@ -36,8 +36,9 @@ Deno.serve(async (req) => {
     const data = await response.json()
 
     if (data.status !== 'OK') {
+      const detail = data.error_message ? ` - ${data.error_message}` : ''
       console.error('Google Maps API error:', data.status, data.error_message)
-      throw new Error(`Google Maps API error: ${data.status}`)
+      throw new Error(`Google Maps API error: ${data.status}${detail}`)
     }
 
     const element = data.rows[0]?.elements[0]
