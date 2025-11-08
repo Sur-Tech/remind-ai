@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, Pencil, Calendar, MapPin } from "lucide-react";
+import { Clock, Trash2, Pencil, Calendar, MapPin, Car } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useTravelTime } from "@/hooks/useTravelTime";
 
 interface RoutineCardProps {
   routine: {
@@ -24,6 +25,8 @@ interface RoutineCardProps {
 }
 
 export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => {
+  const { travelTime, loading, error } = useTravelTime(routine.location);
+
   return (
     <Card className="p-5 shadow-soft border-border/50 bg-card hover:shadow-card transition-smooth group">
       <div className="flex items-start justify-between gap-4">
@@ -46,6 +49,20 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 <span className="text-sm font-medium">{routine.location}</span>
+              </div>
+            )}
+            {travelTime && (
+              <div className="flex items-center gap-2 text-primary">
+                <Car className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {travelTime.duration} drive ({travelTime.distance})
+                </span>
+              </div>
+            )}
+            {loading && routine.location && (
+              <div className="flex items-center gap-2">
+                <Car className="w-4 h-4 animate-pulse" />
+                <span className="text-sm font-medium">Calculating...</span>
               </div>
             )}
           </div>

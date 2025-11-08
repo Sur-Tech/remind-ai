@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.send-push-notifications]
 verify_jwt = false
+
+[functions.calculate-travel-time]
+verify_jwt = true
