@@ -34,13 +34,37 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
   const { travelTime, loading, error } = useTravelTime(routine.location);
   const [showDirections, setShowDirections] = useState(false);
 
+  // Calculate "leave by" time
+  const calculateLeaveByTime = () => {
+    if (!travelTime?.durationValue) return null;
+    
+    const [hours, minutes] = routine.time.split(':').map(Number);
+    const routineDate = new Date();
+    routineDate.setHours(hours, minutes, 0, 0);
+    
+    // Subtract travel time + 5 minute buffer
+    const travelMinutes = Math.ceil(travelTime.durationValue / 60);
+    const leaveByDate = new Date(routineDate.getTime() - (travelMinutes + 5) * 60000);
+    
+    return leaveByDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const leaveByTime = calculateLeaveByTime();
+
   return (
     <Card className="p-5 shadow-soft border-border/50 bg-card hover:shadow-card transition-smooth group">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
-          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-smooth">
-            {routine.name}
-          </h3>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-smooth">
+              {routine.name}
+            </h3>
+            {leaveByTime && (
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                Leave by {leaveByTime}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
