@@ -88,13 +88,13 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
           mode="single"
           selected={selectedDate}
           onSelect={setSelectedDate}
-          className="rounded-md border border-border p-3 pointer-events-auto"
+          className="rounded-md border border-border p-3 pointer-events-auto [&_.has-activity]:relative [&_.has-activity]:after:content-[''] [&_.has-activity]:after:absolute [&_.has-activity]:after:bottom-0.5 [&_.has-activity]:after:left-1/2 [&_.has-activity]:after:-translate-x-1/2 [&_.has-activity]:after:w-1 [&_.has-activity]:after:h-1 [&_.has-activity]:after:rounded-full [&_.has-activity]:after:bg-primary"
           modifiers={{
             hasActivity: allDatesWithActivity,
             hasHoliday: datesWithHolidays,
           }}
           modifiersClassNames={{
-            hasActivity: "bg-primary/20 font-bold",
+            hasActivity: "bg-primary/20 font-bold has-activity",
             hasHoliday: "bg-gradient-to-br from-amber-500/30 to-orange-500/30 font-bold text-foreground",
           }}
         />
