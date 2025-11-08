@@ -7,6 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Calendar } from "lucide-react";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters")
+});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,10 +34,19 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate input
+    const validation = authSchema.safeParse({ email: email.trim(), password });
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
         
@@ -40,7 +55,7 @@ const Auth = () => {
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,

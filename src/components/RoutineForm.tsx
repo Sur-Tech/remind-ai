@@ -11,6 +11,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { z } from "zod";
+import { toast } from "sonner";
+
+const routineSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  description: z.string().trim().max(500, "Description must be less than 500 characters").optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  frequency: z.enum(['once', 'daily', 'weekly', 'monthly'], { errorMap: () => ({ message: "Invalid frequency" }) })
+});
 
 interface RoutineFormProps {
   onAddRoutine: (routine: {
@@ -65,31 +75,43 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && time && date) {
-      if (editingRoutine && onEditRoutine) {
-        onEditRoutine({
-          id: editingRoutine.id,
-          name,
-          time,
-          date: format(date, "yyyy-MM-dd"),
-          description: description || undefined,
-          frequency,
-        });
-      } else {
-        onAddRoutine({
-          name,
-          time,
-          date: format(date, "yyyy-MM-dd"),
-          description: description || undefined,
-          frequency,
-        });
-      }
-      setName("");
-      setTime("");
-      setDate(undefined);
-      setDescription("");
-      setFrequency("once");
+    
+    if (!date) {
+      toast.error("Please select a date");
+      return;
     }
+
+    const formData = {
+      name: name.trim(),
+      time,
+      date: format(date, 'yyyy-MM-dd'),
+      description: description.trim() || undefined,
+      frequency,
+    };
+
+    // Validate input
+    const validation = routineSchema.safeParse(formData);
+    if (!validation.success) {
+      const firstError = validation.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+    
+    if (editingRoutine && onEditRoutine) {
+      onEditRoutine({
+        id: editingRoutine.id,
+        ...formData,
+      });
+    } else {
+      onAddRoutine(formData);
+    }
+    
+    // Reset form
+    setName("");
+    setTime("");
+    setDate(undefined);
+    setDescription("");
+    setFrequency("once");
   };
 
   const handleCancel = () => {
@@ -123,6 +145,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
             onChange={(e) => setName(e.target.value)}
             placeholder="Morning meditation, Evening workout..."
             required
+            maxLength={100}
             className="border-input bg-background"
           />
         </div>
@@ -199,6 +222,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add any notes or details..."
+            maxLength={500}
             className="border-input bg-background resize-none"
             rows={3}
           />
