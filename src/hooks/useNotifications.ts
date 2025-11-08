@@ -89,30 +89,40 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
         
         const routineKey = `routine-${routine.id}-${currentDate}`;
         
-        // Calculate exact "leave by" time: routine time - travel time - 5 minutes
+        // Calculate notification time
         const [hours, minutes] = routine.time.split(':').map(Number);
         const routineDateTime = new Date();
         routineDateTime.setHours(hours, minutes, 0, 0);
         
-        // Subtract travel time (if available) + 5 minutes buffer
-        const travelMinutes = routine.travelTimeMinutes || 0;
-        const leaveByTime = new Date(routineDateTime.getTime() - (travelMinutes + 5) * 60000);
-        const leaveByTimeString = `${leaveByTime.getHours().toString().padStart(2, "0")}:${leaveByTime.getMinutes().toString().padStart(2, "0")}`;
+        let notificationTime: Date;
+        if (routine.location && routine.travelTimeMinutes) {
+          // If there's a location: subtract travel time + 5 minutes buffer
+          notificationTime = new Date(routineDateTime.getTime() - (routine.travelTimeMinutes + 5) * 60000);
+        } else {
+          // If no location: notify at exact routine time
+          notificationTime = routineDateTime;
+        }
         
-        if (leaveByTimeString === currentTime && !notifiedItems.has(routineKey)) {
+        const notificationTimeString = `${notificationTime.getHours().toString().padStart(2, "0")}:${notificationTime.getMinutes().toString().padStart(2, "0")}`;
+        
+        if (notificationTimeString === currentTime && !notifiedItems.has(routineKey)) {
           playNotificationSound();
           
           const travelInfo = routine.travelTimeMinutes 
             ? `\n🚗 ${routine.travelTimeMinutes} min drive - Leave in 5 minutes!`
             : '';
           
-          new Notification("Time to Leave", {
+          const notificationTitle = routine.location && routine.travelTimeMinutes 
+            ? "Time to Leave" 
+            : "Routine Reminder";
+          
+          new Notification(notificationTitle, {
             body: `Get ready for: ${routine.name}${travelInfo}${routine.description ? `\n${routine.description}` : ""}`,
             icon: "/favicon.ico",
             tag: routineKey,
           });
           
-          sonnerToast.info(`Time to Leave: ${routine.name}`, {
+          sonnerToast.info(`${notificationTitle}: ${routine.name}`, {
             description: routine.travelTimeMinutes 
               ? `${routine.travelTimeMinutes} min drive - Leave in 5 minutes!`
               : "It's time for your routine!",
