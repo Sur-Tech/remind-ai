@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import webPush from 'https://esm.sh/web-push@3.6.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -77,6 +78,13 @@ Deno.serve(async (req) => {
       throw new Error('VAPID keys not configured')
     }
 
+    // Configure web-push with VAPID keys
+    webPush.setVapidDetails(
+      'mailto:noreply@routinereminder.app',
+      vapidPublicKey,
+      vapidPrivateKey
+    )
+
     // Send notifications
     const notificationPromises = []
 
@@ -87,25 +95,28 @@ Deno.serve(async (req) => {
         const payload = JSON.stringify({
           title: 'Routine Reminder',
           body: `"${routine.name}" starts at ${routine.time}`,
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
           data: { routineId: routine.id }
         })
 
-        const notificationPromise = fetch('https://fcm.googleapis.com/fcm/send', {
-          method: 'POST',
-          headers: {
-            'Authorization': `key=${vapidPrivateKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            notification: {
-              title: 'Routine Reminder',
-              body: `"${routine.name}" starts at ${routine.time}`,
-            },
-            to: sub.subscription.endpoint
+        const notificationPromise = webPush
+          .sendNotification(sub.subscription, payload)
+          .then(() => {
+            console.log(`Notification sent for routine ${routine.id}`)
           })
-        }).catch(error => {
-          console.error(`Failed to send notification for routine ${routine.id}:`, error)
-        })
+          .catch(async (error) => {
+            console.error(`Failed to send notification for routine ${routine.id}:`, error)
+            
+            // If subscription is invalid (410 Gone), remove it from database
+            if (error.statusCode === 410) {
+              console.log(`Removing invalid subscription for user ${sub.user_id}`)
+              await supabaseClient
+                .from('push_subscriptions')
+                .delete()
+                .eq('id', sub.id)
+            }
+          })
 
         notificationPromises.push(notificationPromise)
       }
