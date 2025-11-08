@@ -26,3 +26,9 @@ verify_jwt = true
 
 [functions.chat]
 verify_jwt = true
+
+[functions.get-weather]
+verify_jwt = true
+
+[functions.weather-recommendation]
+verify_jwt = true

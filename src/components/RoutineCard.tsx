@@ -4,6 +4,7 @@ import { Clock, Trash2, Pencil, Calendar, MapPin, Car, Navigation, ChevronDown, 
 import { format, parseISO } from "date-fns";
 import { useTravelTime } from "@/hooks/useTravelTime";
 import { useWeather } from "@/hooks/useWeather";
+import { useWeatherRecommendation } from "@/hooks/useWeatherRecommendation";
 import { formatTime12Hour } from "@/lib/utils";
 import { useState } from "react";
 import {
@@ -35,6 +36,11 @@ interface RoutineCardProps {
 export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => {
   const { travelTime, loading, error } = useTravelTime(routine.location);
   const { weather, loading: weatherLoading } = useWeather(routine.location);
+  const { recommendation, loading: recLoading } = useWeatherRecommendation(
+    weather,
+    routine.name,
+    routine.time
+  );
   const [showDirections, setShowDirections] = useState(false);
 
   // Calculate "leave by" time
@@ -122,6 +128,17 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
           </div>
           {routine.description && (
             <p className="text-sm text-muted-foreground mt-2">{routine.description}</p>
+          )}
+          {recommendation && (
+            <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <span className="text-xs font-medium text-primary">💡</span>
+              <p className="text-sm text-primary font-medium flex-1">{recommendation}</p>
+            </div>
+          )}
+          {recLoading && weather && (
+            <div className="mt-3 p-3 rounded-lg bg-muted/50 animate-pulse">
+              <p className="text-sm text-muted-foreground">Getting AI recommendation...</p>
+            </div>
           )}
           {travelTime?.directions && travelTime.directions.length > 0 && (
             <Collapsible open={showDirections} onOpenChange={setShowDirections} className="mt-3">
