@@ -126,8 +126,8 @@ serve(async (req) => {
     const weatherInfo = getWeatherInfo(weatherData.current.weather_code);
 
     const result = {
-      temperature: Math.round(weatherData.current.temperature_2m),
-      feelsLike: Math.round(weatherData.current.temperature_2m), // Open-Meteo doesn't provide feels-like
+      temperature: Math.round((weatherData.current.temperature_2m * 9/5) + 32), // Convert to Fahrenheit
+      feelsLike: Math.round((weatherData.current.temperature_2m * 9/5) + 32), // Convert to Fahrenheit
       description: weatherInfo.description,
       icon: weatherInfo.icon,
       humidity: weatherData.current.relative_humidity_2m,
