@@ -158,9 +158,9 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
             </Collapsible>
           )}
           {recommendation && (
-            <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <span className="text-xs font-medium text-primary">💡</span>
-              <p className="text-sm text-primary font-medium flex-1">{recommendation}</p>
+            <div className="mt-3 flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/10">
+              <span className="text-base font-medium text-primary">💡</span>
+              <p className="text-sm text-primary leading-relaxed flex-1">{recommendation}</p>
             </div>
           )}
           {recLoading && weather && (

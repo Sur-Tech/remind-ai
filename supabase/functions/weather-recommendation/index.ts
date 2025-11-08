@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const prompt = `You are a helpful assistant providing brief weather-related advice for daily activities.
+    const prompt = `You are a helpful assistant providing detailed weather-related advice for daily activities.
 
 Weather Conditions:
 - Temperature: ${weather.temperature}°F
@@ -36,7 +36,7 @@ Weather Conditions:
 Activity: ${routineName}
 Time: ${time}
 
-Provide a single, concise tip (max 15 words) about what to bring, wear, or be aware of. Be specific and actionable.`;
+Provide detailed, actionable advice (40-50 words) about what to bring, wear, or be aware of for this activity given the weather conditions. Include specific recommendations about clothing layers, accessories, or precautions. Be practical and considerate of the time of day.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -47,11 +47,11 @@ Provide a single, concise tip (max 15 words) about what to bring, wear, or be aw
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'You are a concise weather advisor. Keep tips under 15 words.' },
+          { role: 'system', content: 'You are a detailed weather advisor. Provide practical, actionable advice in 40-50 words.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 100,
+        max_tokens: 200,
       }),
     });
 
