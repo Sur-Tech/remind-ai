@@ -7,6 +7,8 @@ interface Routine {
   time: string;
   date: string;
   description?: string;
+  frequency: string;
+  location?: string;
 }
 
 interface RoutineListProps {
