@@ -77,7 +77,7 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
   return (
     <Card className="p-6 shadow-card border-border/50 bg-card sticky top-8">
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <div className="p-2 rounded-lg bg-gradient-primary">
             <CalendarDays className="w-5 h-5 text-primary-foreground" />
           </div>
