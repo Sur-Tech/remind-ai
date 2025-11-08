@@ -14,6 +14,8 @@ import { cn, formatTime12Hour, formatTime24Hour } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
 import { AddressAutocomplete } from "./AddressAutocomplete";
+import { WeatherDisplay } from "./WeatherDisplay";
+import { useWeather } from "@/hooks/useWeather";
 
 const routineSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -61,6 +63,9 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
   const [description, setDescription] = useState("");
   const [frequency, setFrequency] = useState("once");
   const [location, setLocation] = useState("");
+
+  // Fetch weather for the location
+  const { weather, loading: weatherLoading, error: weatherError } = useWeather(location);
 
   // Update form when editingRoutine changes
   useEffect(() => {
@@ -239,6 +244,13 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
             placeholder="Start typing an address..."
             className="border-input bg-background"
           />
+          {location && (
+            <WeatherDisplay 
+              weather={weather} 
+              loading={weatherLoading} 
+              error={weatherError} 
+            />
+          )}
         </div>
 
         <div className="space-y-2">
