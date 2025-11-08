@@ -10,6 +10,21 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify secret for authentication
+  const CRON_SECRET = Deno.env.get('CRON_SECRET');
+  const authHeader = req.headers.get('Authorization');
+  
+  if (!authHeader || authHeader !== `Bearer ${CRON_SECRET}`) {
+    console.error('Unauthorized access attempt');
+    return new Response(JSON.stringify({ 
+      error: 'Unauthorized',
+      success: false 
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
