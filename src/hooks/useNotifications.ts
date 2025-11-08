@@ -50,9 +50,20 @@ const playNotificationSound = () => {
 export const useNotifications = (routines: Routine[], calendarEvents: CalendarEvent[] = []) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [notifiedItems, setNotifiedItems] = useState<Set<string>>(new Set());
+  const [serviceWorkerRegistration, setServiceWorkerRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
+  // Register service worker
   useEffect(() => {
-    if ("Notification" in window) {
+    if ('serviceWorker' in navigator && 'Notification' in window) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+          setServiceWorkerRegistration(registration);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+      
       setPermission(Notification.permission);
     }
   }, []);
@@ -69,91 +80,20 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
     }
   };
 
+  // Send routines and events to service worker
   useEffect(() => {
-    if (permission !== "granted" || (routines.length === 0 && calendarEvents.length === 0)) return;
+    if (permission !== "granted" || !serviceWorkerRegistration) return;
+    if (routines.length === 0 && calendarEvents.length === 0) return;
 
-    const checkNotifications = () => {
-      const now = new Date();
-      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(
-        now.getMinutes()
-      ).padStart(2, "0")}`;
-      const currentDate = now.toISOString().split('T')[0];
+    // Send data to service worker
+    navigator.serviceWorker.controller?.postMessage({
+      type: 'SCHEDULE_NOTIFICATIONS',
+      routines,
+      calendarEvents
+    });
 
-      // Check routines
-      routines.forEach((routine) => {
-        const routineKey = `routine-${routine.id}-${currentDate}-${currentTime}`;
-        
-        if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
-          try {
-            playNotificationSound();
-            
-            // Show on-screen toast notification
-            sonnerToast.success(`⏰ It's time for ${routine.name}`, {
-              description: routine.description || undefined,
-              duration: 5000,
-            });
-            
-            // Show desktop notification
-            new Notification("⏰ Reminder Due Now", {
-              body: `${routine.name}${routine.description ? '\n' + routine.description : ''}`,
-              icon: "/favicon.ico",
-              badge: "/favicon.ico",
-              tag: routineKey,
-              requireInteraction: true,
-            });
-            setNotifiedItems(prev => new Set(prev).add(routineKey));
-            console.log("Notification sent for routine:", routine.name);
-          } catch (error) {
-            console.error("Failed to send notification:", error);
-          }
-        }
-      });
-
-      // Check calendar events (notify 5 minutes before)
-      calendarEvents.forEach((event) => {
-        const eventTime = new Date(event.start_time);
-        const notifyTime = new Date(eventTime.getTime() - 5 * 60000);
-        const eventKey = `event-${event.id}-${currentDate}`;
-        
-        const isNotifyTime = 
-          now.getHours() === notifyTime.getHours() &&
-          now.getMinutes() === notifyTime.getMinutes();
-
-        if (isNotifyTime && !notifiedItems.has(eventKey)) {
-          try {
-            playNotificationSound();
-            
-            // Show on-screen toast notification
-            sonnerToast.info(`📅 ${event.title} starts in 5 minutes`, {
-              description: event.description || undefined,
-              duration: 5000,
-            });
-            
-            // Show desktop notification
-            new Notification("📅 Upcoming Calendar Event", {
-              body: `${event.title} starts in 5 minutes${event.description ? '\n' + event.description : ''}`,
-              icon: "/favicon.ico",
-              badge: "/favicon.ico",
-              tag: eventKey,
-              requireInteraction: true,
-            });
-            setNotifiedItems(prev => new Set(prev).add(eventKey));
-            console.log("Notification sent for event:", event.title);
-          } catch (error) {
-            console.error("Failed to send notification:", error);
-          }
-        }
-      });
-    };
-
-    // Check immediately
-    checkNotifications();
-    
-    // Check every minute
-    const interval = setInterval(checkNotifications, 60000);
-
-    return () => clearInterval(interval);
-  }, [routines, calendarEvents, permission, notifiedItems]);
+    console.log('Sent notification schedule to service worker');
+  }, [routines, calendarEvents, permission, serviceWorkerRegistration]);
 
   // Clear notified items at midnight
   useEffect(() => {
