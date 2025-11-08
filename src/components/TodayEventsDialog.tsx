@@ -1,4 +1,4 @@
-import { format, isToday } from "date-fns";
+import { format, isToday, parseISO, startOfDay, isSameDay } from "date-fns";
 import { Calendar, Clock, FileText } from "lucide-react";
 import {
   Dialog,
@@ -24,8 +24,8 @@ interface TodayEventsDialogProps {
 
 export const TodayEventsDialog = ({ routines }: TodayEventsDialogProps) => {
   const todayRoutines = routines.filter((routine) => {
-    const routineDate = new Date(routine.date);
-    return isToday(routineDate);
+    const routineDate = parseISO(routine.date);
+    return isSameDay(routineDate, new Date());
   }).sort((a, b) => a.time.localeCompare(b.time));
 
   return (
