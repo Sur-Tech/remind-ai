@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, parseISO } from "date-fns";
-import { Clock, CalendarDays } from "lucide-react";
+import { Clock, CalendarDays, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface Routine {
@@ -32,6 +33,18 @@ interface RoutineCalendarProps {
 export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
+  // Detect if event is a holiday or major event
+  const isHolidayEvent = (title: string) => {
+    const holidayKeywords = [
+      'holiday', 'christmas', 'thanksgiving', 'easter', 'new year',
+      'birthday', 'anniversary', 'memorial', 'independence', 'labor day',
+      'veterans', 'hanukkah', 'diwali', 'ramadan', 'eid', 'passover',
+      'valentine', 'mother', 'father', 'halloween', 'fourth of july'
+    ];
+    const lowerTitle = title.toLowerCase();
+    return holidayKeywords.some(keyword => lowerTitle.includes(keyword));
+  };
+
   // Get routines for the selected date
   const routinesForSelectedDate = routines.filter((routine) => {
     if (!selectedDate) return false;
@@ -49,6 +62,9 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
   // Get dates that have routines or events
   const datesWithRoutines = routines.map((routine) => parseISO(routine.date));
   const datesWithEvents = calendarEvents.map((event) => parseISO(event.event_date));
+  const datesWithHolidays = calendarEvents
+    .filter(event => isHolidayEvent(event.title))
+    .map(event => parseISO(event.event_date));
   const allDatesWithActivity = [...datesWithRoutines, ...datesWithEvents];
 
   return (
@@ -68,9 +84,11 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
           className="rounded-md border border-border p-3 pointer-events-auto"
           modifiers={{
             hasActivity: allDatesWithActivity,
+            hasHoliday: datesWithHolidays,
           }}
           modifiersClassNames={{
             hasActivity: "bg-primary/20 font-bold",
+            hasHoliday: "bg-gradient-to-br from-amber-500/30 to-orange-500/30 font-bold text-foreground",
           }}
         />
 
@@ -112,31 +130,50 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
             {eventsForSelectedDate.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase">Events</p>
-                {eventsForSelectedDate.map((event) => (
-                  <div
-                    key={event.id}
-                    className="p-3 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-smooth"
-                  >
-                    <div className="flex items-start gap-2">
-                      <CalendarDays className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {event.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          {' - '}
-                          {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                        {event.location && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            📍 {event.location}
-                          </p>
+                {eventsForSelectedDate.map((event) => {
+                  const isHoliday = isHolidayEvent(event.title);
+                  return (
+                    <div
+                      key={event.id}
+                      className={cn(
+                        "p-3 rounded-lg border transition-smooth",
+                        isHoliday
+                          ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30 hover:from-amber-500/30 hover:to-orange-500/30"
+                          : "bg-primary/10 border-primary/20 hover:bg-primary/20"
+                      )}
+                    >
+                      <div className="flex items-start gap-2">
+                        {isHoliday ? (
+                          <Sparkles className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <CalendarDays className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                         )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {event.title}
+                            </p>
+                            {isHoliday && (
+                              <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                                Holiday
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {' - '}
+                            {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          {event.location && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              📍 {event.location}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
