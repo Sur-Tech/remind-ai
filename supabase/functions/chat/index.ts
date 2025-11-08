@@ -143,6 +143,19 @@ EXAMPLE: If user says "I have 3 things: play fortnite, finish homework, watch tv
 
 When users ask you to add, create, or schedule routines, use the create_routine tool for each routine. Extract the routine details from their message (name, time, date, description, location if provided).
 
+MODIFYING EXISTING ROUTINES:
+When users ask to change, update, modify, or edit an existing routine:
+1. Look at their current schedule in the context above
+2. Identify which routine they're referring to (by name, date, or time)
+3. Use the update_routine tool with the routine's name and date to identify it
+4. Only include the fields that need to be changed (time, description, location, or new name)
+5. DO NOT create a new routine - always update the existing one
+
+EXAMPLES:
+- "change Visit Mom to 4:00pm" → Use update_routine to change the time
+- "move my homework to tomorrow" → Use update_routine to change the date
+- "add location to my meeting" → Use update_routine to add location
+
 DATE HANDLING:
 - Current date is ${new Date().toISOString().split('T')[0]}
 - If the user says "tomorrow", calculate tomorrow's date
@@ -186,6 +199,48 @@ Always address users warmly and reference their actual schedule when relevant.`
                   }
                 },
                 required: ["name", "time", "date"],
+                additionalProperties: false
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "update_routine",
+              description: "Update an existing routine. Use this when the user wants to change, modify, or update a routine that already exists in their schedule.",
+              parameters: {
+                type: "object",
+                properties: {
+                  routine_name: {
+                    type: "string",
+                    description: "The name of the routine to update (must match existing routine name)"
+                  },
+                  routine_date: {
+                    type: "string",
+                    description: "The date of the routine to update in YYYY-MM-DD format (must match existing routine date)"
+                  },
+                  new_name: {
+                    type: "string",
+                    description: "New name for the routine (optional, only if user wants to rename it)"
+                  },
+                  new_time: {
+                    type: "string",
+                    description: "New time in HH:MM format (optional, only if user wants to change the time)"
+                  },
+                  new_date: {
+                    type: "string",
+                    description: "New date in YYYY-MM-DD format (optional, only if user wants to move it to a different date)"
+                  },
+                  new_description: {
+                    type: "string",
+                    description: "New or updated description (optional)"
+                  },
+                  new_location: {
+                    type: "string",
+                    description: "New or updated location (optional)"
+                  }
+                },
+                required: ["routine_name", "routine_date"],
                 additionalProperties: false
               }
             }
