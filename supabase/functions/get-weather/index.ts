@@ -20,10 +20,10 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('OPENWEATHER_API_KEY');
-    if (!apiKey) {
+    const googleKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
+    if (!googleKey) {
       return new Response(
-        JSON.stringify({ error: 'Weather API key not configured' }),
+        JSON.stringify({ error: 'Google Maps API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -43,57 +43,29 @@ serve(async (req) => {
       resolvedCountry = '';
       console.log(`Parsed coordinates directly: (${lat}, ${lon})`);
     } else {
-      // Try Google Geocoding first (more tolerant with full addresses)
-      const googleKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
-      if (googleKey) {
-        const googleGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${googleKey}`;
-        console.log(`Google Geocoding URL: ${googleGeocodeUrl}`);
-        const ggRes = await fetch(googleGeocodeUrl);
-        const ggJson = await ggRes.json();
-        console.log(`Google Geocoding status: ${ggRes.status}, results: ${ggJson.results?.length ?? 0}`);
-        if (ggRes.ok && ggJson.status === 'OK' && ggJson.results && ggJson.results.length > 0) {
-          const best = ggJson.results[0];
-          lat = best.geometry.location.lat;
-          lon = best.geometry.location.lng;
-          // Try to extract city and country from address components
-          const comps: Array<{ long_name: string; short_name: string; types: string[] }> = best.address_components || [];
-          const cityComp = comps.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'));
-          const countryComp = comps.find(c => c.types.includes('country'));
-          resolvedName = cityComp?.long_name || best.formatted_address || 'Selected location';
-          resolvedCountry = countryComp?.short_name || '';
-          console.log(`Google geocoded: ${resolvedName}, ${resolvedCountry} (${lat}, ${lon})`);
-        }
-      }
-
-      // If Google didn't resolve, fall back to OpenWeather's geocoding using a simplified query
-      if (lat === undefined || lon === undefined) {
-        // Extract city/state from address (e.g., "205 Hobart Avenue, Short Hills, NJ" -> "Short Hills, NJ")
-        let searchLocation = String(location);
-        const addressParts = searchLocation.split(',').map((part: string) => part.trim());
-        if (addressParts.length >= 2) {
-          searchLocation = addressParts.slice(-2).join(', ');
-        }
-        console.log(`Falling back to OpenWeather geocoding for: "${searchLocation}"`);
-        const geocodeUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(searchLocation)}&limit=1&appid=${apiKey}`;
-        const geocodeResponse = await fetch(geocodeUrl);
-        console.log(`OpenWeather Geocode API status: ${geocodeResponse.status}`);
-        if (!geocodeResponse.ok) {
-          const errorText = await geocodeResponse.text();
-          console.error(`OpenWeather Geocode API error: ${errorText}`);
-          throw new Error(`Geocoding failed with status ${geocodeResponse.status}`);
-        }
-        const geocodeData = await geocodeResponse.json();
-        console.log(`OpenWeather Geocode response:`, JSON.stringify(geocodeData));
-        if (!geocodeData || geocodeData.length === 0) {
-          return new Response(
-            JSON.stringify({ error: 'Location not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        lat = geocodeData[0].lat;
-        lon = geocodeData[0].lon;
-        resolvedName = geocodeData[0].name || 'Selected location';
-        resolvedCountry = geocodeData[0].country || '';
+      // Use Google Geocoding (more tolerant with full addresses)
+      const googleGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${googleKey}`;
+      console.log(`Google Geocoding for: "${location}"`);
+      const ggRes = await fetch(googleGeocodeUrl);
+      const ggJson = await ggRes.json();
+      console.log(`Google Geocoding status: ${ggRes.status}, results: ${ggJson.results?.length ?? 0}`);
+      
+      if (ggRes.ok && ggJson.status === 'OK' && ggJson.results && ggJson.results.length > 0) {
+        const best = ggJson.results[0];
+        lat = best.geometry.location.lat;
+        lon = best.geometry.location.lng;
+        // Try to extract city and country from address components
+        const comps: Array<{ long_name: string; short_name: string; types: string[] }> = best.address_components || [];
+        const cityComp = comps.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'));
+        const countryComp = comps.find(c => c.types.includes('country'));
+        resolvedName = cityComp?.long_name || best.formatted_address || 'Selected location';
+        resolvedCountry = countryComp?.short_name || '';
+        console.log(`Google geocoded: ${resolvedName}, ${resolvedCountry} (${lat}, ${lon})`);
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'Location not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     }
 
@@ -105,28 +77,61 @@ serve(async (req) => {
     }
 
 
-    // Fetch weather data using coordinates
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-    console.log(`Fetching weather from: ${weatherUrl}`);
+    // Fetch weather data from Open-Meteo (no API key required)
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&temperature_unit=celsius&wind_speed_unit=ms`;
+    console.log(`Fetching weather from Open-Meteo: ${weatherUrl}`);
     
     const weatherResponse = await fetch(weatherUrl);
 
     if (!weatherResponse.ok) {
       const errorText = await weatherResponse.text();
-      console.error(`Weather API error: ${errorText}`);
+      console.error(`Open-Meteo API error: ${errorText}`);
       throw new Error(`Weather API failed with status ${weatherResponse.status}`);
     }
 
     const weatherData = await weatherResponse.json();
-    console.log(`Weather data received for: ${weatherData.name}`);
+    console.log(`Weather data received from Open-Meteo`);
+
+    // Map Open-Meteo weather codes to descriptions and icons
+    const getWeatherInfo = (code: number) => {
+      const weatherCodes: Record<number, { description: string; icon: string }> = {
+        0: { description: 'clear sky', icon: '01d' },
+        1: { description: 'mainly clear', icon: '02d' },
+        2: { description: 'partly cloudy', icon: '03d' },
+        3: { description: 'overcast', icon: '04d' },
+        45: { description: 'foggy', icon: '50d' },
+        48: { description: 'depositing rime fog', icon: '50d' },
+        51: { description: 'light drizzle', icon: '09d' },
+        53: { description: 'moderate drizzle', icon: '09d' },
+        55: { description: 'dense drizzle', icon: '09d' },
+        61: { description: 'slight rain', icon: '10d' },
+        63: { description: 'moderate rain', icon: '10d' },
+        65: { description: 'heavy rain', icon: '10d' },
+        71: { description: 'slight snow', icon: '13d' },
+        73: { description: 'moderate snow', icon: '13d' },
+        75: { description: 'heavy snow', icon: '13d' },
+        77: { description: 'snow grains', icon: '13d' },
+        80: { description: 'slight rain showers', icon: '09d' },
+        81: { description: 'moderate rain showers', icon: '09d' },
+        82: { description: 'violent rain showers', icon: '09d' },
+        85: { description: 'slight snow showers', icon: '13d' },
+        86: { description: 'heavy snow showers', icon: '13d' },
+        95: { description: 'thunderstorm', icon: '11d' },
+        96: { description: 'thunderstorm with slight hail', icon: '11d' },
+        99: { description: 'thunderstorm with heavy hail', icon: '11d' },
+      };
+      return weatherCodes[code] || { description: 'unknown', icon: '01d' };
+    };
+
+    const weatherInfo = getWeatherInfo(weatherData.current.weather_code);
 
     const result = {
-      temperature: Math.round(weatherData.main.temp),
-      feelsLike: Math.round(weatherData.main.feels_like),
-      description: weatherData.weather[0].description,
-      icon: weatherData.weather[0].icon,
-      humidity: weatherData.main.humidity,
-      windSpeed: weatherData.wind.speed,
+      temperature: Math.round(weatherData.current.temperature_2m),
+      feelsLike: Math.round(weatherData.current.temperature_2m), // Open-Meteo doesn't provide feels-like
+      description: weatherInfo.description,
+      icon: weatherInfo.icon,
+      humidity: weatherData.current.relative_humidity_2m,
+      windSpeed: weatherData.current.wind_speed_10m,
       location: resolvedName,
       country: resolvedCountry,
     };
