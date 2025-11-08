@@ -47,12 +47,17 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
     return holidayKeywords.some(keyword => lowerTitle.includes(keyword));
   };
 
-  // Get routines for the selected date
-  const routinesForSelectedDate = routines.filter((routine) => {
-    if (!selectedDate) return false;
-    const routineDate = parseISO(routine.date);
-    return isSameDay(routineDate, selectedDate);
-  });
+  // Get routines for the selected date, sorted by time (earliest to latest)
+  const routinesForSelectedDate = routines
+    .filter((routine) => {
+      if (!selectedDate) return false;
+      const routineDate = parseISO(routine.date);
+      return isSameDay(routineDate, selectedDate);
+    })
+    .sort((a, b) => {
+      // Compare times as strings in HH:MM format (which sorts correctly alphabetically)
+      return a.time.localeCompare(b.time);
+    });
 
   // Get calendar events for the selected date
   const eventsForSelectedDate = calendarEvents.filter((event) => {
