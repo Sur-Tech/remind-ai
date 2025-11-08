@@ -273,14 +273,14 @@ const Index = () => {
         <h1 className="text-3xl font-bold text-primary font-orbitron">Remind AI</h1>
       </div>
       
-      <div className="flex gap-6 px-4 py-8">
+      <div className="flex gap-6 px-4 py-8 justify-center">
         {/* Calendar Section */}
         <div className="w-80 flex-shrink-0">
           <RoutineCalendar routines={routines} calendarEvents={calendarEvents} />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 max-w-3xl space-y-8">
+        <div className="flex-1 max-w-3xl space-y-8 mx-auto">
           {/* Header */}
           <header className="text-center space-y-4 py-8">
             <div className="flex justify-between items-center mb-4">
