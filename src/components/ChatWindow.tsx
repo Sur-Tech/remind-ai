@@ -305,10 +305,39 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
                   const args = JSON.parse(toolCallArgs);
                   console.log("Getting weather with args:", args);
                   
+                  let location = args.location;
+                  
+                  // If no location provided, get user's current location
+                  if (!location || location === "current" || location === "here" || location === "my location") {
+                    try {
+                      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                          enableHighAccuracy: true,
+                          timeout: 5000,
+                          maximumAge: 0
+                        });
+                      });
+                      
+                      location = `${position.coords.latitude},${position.coords.longitude}`;
+                      console.log("Using current location:", location);
+                    } catch (geoError) {
+                      console.error("Geolocation error:", geoError);
+                      setMessages((prev) => {
+                        const updated = [...prev];
+                        updated[updated.length - 1] = {
+                          role: "assistant",
+                          content: `I need your location permission to get the weather. Please enable location access in your browser or specify a city name.`,
+                        };
+                        return updated;
+                      });
+                      return;
+                    }
+                  }
+                  
                   // Call the weather edge function
                   const { data: weatherData, error: weatherError } = await supabase.functions.invoke('get-weather', {
                     body: { 
-                      location: args.location,
+                      location: location,
                       datetime: args.datetime
                     }
                   });

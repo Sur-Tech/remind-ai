@@ -169,15 +169,18 @@ EXAMPLES:
 
 WEATHER QUERIES:
 When users ask about weather:
-1. Extract the location from their question (city name or address)
-2. If they ask about weather at a specific time/date (like "tomorrow at 5am"), parse the datetime and convert it to ISO format (YYYY-MM-DDTHH:mm:ss)
-3. Use the get_weather tool with the location and optional datetime
-4. Provide the weather information in a conversational way
+1. If they specify a location (city name or address), use that location
+2. If they don't specify a location, or say "here", "current location", use location: "current" to trigger current location detection
+3. If they ask about weather at a specific time/date (like "tomorrow at 5am"), parse the datetime and convert it to ISO format (YYYY-MM-DDTHH:mm:ss)
+4. Use the get_weather tool with the location and optional datetime
+5. Provide the weather information in a conversational way
 
 EXAMPLES:
-- "What's the weather in New York?" → Use get_weather with location only (current weather)
-- "What will the weather be tomorrow at 5am in Paris?" → Use get_weather with location and datetime
-- "Will it rain in London on November 15th at 3pm?" → Use get_weather with location and specific datetime
+- "What's the weather?" → Use get_weather with location="current" (user's current location)
+- "What's the weather in New York?" → Use get_weather with location="New York"
+- "What will the weather be tomorrow at 5am?" → Use get_weather with location="current" and datetime
+- "What will the weather be tomorrow at 5am in Paris?" → Use get_weather with location="Paris" and datetime
+- "Will it rain here on November 15th at 3pm?" → Use get_weather with location="current" and specific datetime
 
 DATE HANDLING:
 - Current date is ${new Date().toISOString().split('T')[0]}
