@@ -208,7 +208,6 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
               required
               className="border-input bg-background"
             />
-            <p className="text-xs text-muted-foreground">Format: 9:00 AM or 2:30 PM</p>
           </div>
         </div>
 
