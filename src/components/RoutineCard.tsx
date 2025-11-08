@@ -74,55 +74,59 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                {format(parseISO(routine.date), "MMM d, yyyy")}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm font-medium">{formatTime12Hour(routine.time)}</span>
-            </div>
-            {weather && routine.location && (
-              <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <img
-                    src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
-                    alt={weather.description}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">{weather.temperature}°F</span>
-                </div>
-                <span className="text-sm font-medium capitalize">{weather.description}</span>
-                <span className="text-sm font-medium">Humidity: {weather.humidity}%</span>
-                <span className="text-sm font-medium">Wind: {weather.windSpeed} mph</span>
-              </div>
-            )}
-            {weatherLoading && routine.location && (
-              <div className="flex items-center gap-1">
-                <CloudRain className="w-4 h-4 animate-pulse text-muted-foreground" />
-              </div>
-            )}
-            {routine.location && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm font-medium">{routine.location}</span>
-              </div>
-            )}
-            {travelTime && (
-              <div className="flex items-center gap-2 text-primary">
-                <Car className="w-4 h-4" />
+                <Calendar className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  {travelTime.duration} drive ({travelTime.distance})
+                  {format(parseISO(routine.date), "MMM d, yyyy")}
                 </span>
               </div>
-            )}
-            {loading && routine.location && (
               <div className="flex items-center gap-2">
-                <Car className="w-4 h-4 animate-pulse" />
-                <span className="text-sm font-medium">Calculating...</span>
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">{formatTime12Hour(routine.time)}</span>
+              </div>
+              {weather && routine.location && (
+                <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <img
+                      src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
+                      alt={weather.description}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm font-medium">{weather.temperature}°F</span>
+                  </div>
+                  <span className="text-sm font-medium capitalize">{weather.description}</span>
+                  <span className="text-sm font-medium">Humidity: {weather.humidity}%</span>
+                  <span className="text-sm font-medium">Wind: {weather.windSpeed} mph</span>
+                </div>
+              )}
+              {weatherLoading && routine.location && (
+                <div className="flex items-center gap-1">
+                  <CloudRain className="w-4 h-4 animate-pulse text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            {routine.location && (
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm font-medium">{routine.location}</span>
+                </div>
+                {travelTime && (
+                  <div className="flex items-center gap-2 text-primary pl-6">
+                    <Car className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {travelTime.duration} drive ({travelTime.distance})
+                    </span>
+                  </div>
+                )}
+                {loading && (
+                  <div className="flex items-center gap-2 text-muted-foreground pl-6">
+                    <Car className="w-4 h-4 animate-pulse" />
+                    <span className="text-sm font-medium">Calculating...</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
