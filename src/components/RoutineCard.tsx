@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, Pencil, Calendar, MapPin, Car, Navigation, ChevronDown } from "lucide-react";
+import { Clock, Trash2, Pencil, Calendar, MapPin, Car, Navigation, ChevronDown, CloudRain } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { useWeather } from "@/hooks/useWeather";
 import { formatTime12Hour } from "@/lib/utils";
 import { useState } from "react";
 import {
@@ -33,6 +34,7 @@ interface RoutineCardProps {
 
 export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => {
   const { travelTime, loading, error } = useTravelTime(routine.location);
+  const { weather, loading: weatherLoading } = useWeather(routine.location);
   const [showDirections, setShowDirections] = useState(false);
 
   // Calculate "leave by" time
@@ -72,6 +74,21 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               <span className="text-sm font-medium">
                 {format(parseISO(routine.date), "MMM d, yyyy")}
               </span>
+              {weather && routine.location && (
+                <div className="flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <img
+                    src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
+                    alt={weather.description}
+                    className="w-5 h-5"
+                  />
+                  <span className="text-sm font-semibold">{weather.temperature}°C</span>
+                </div>
+              )}
+              {weatherLoading && routine.location && (
+                <div className="ml-2 flex items-center gap-1">
+                  <CloudRain className="w-4 h-4 animate-pulse text-muted-foreground" />
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
