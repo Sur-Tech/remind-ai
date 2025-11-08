@@ -36,7 +36,7 @@ Weather Conditions:
 Activity: ${routineName}
 Time: ${time}
 
-Provide detailed, actionable advice (40-50 words) about what to bring, wear, or be aware of for this activity given the weather conditions. Include specific recommendations about clothing layers, accessories, or precautions. Be practical and considerate of the time of day.`;
+Start your advice by directly referencing "${routineName}" and then provide detailed, actionable advice (40-50 words) about what to bring, wear, or be aware of for this activity given the weather conditions. Include specific recommendations about clothing layers, accessories, or precautions. Be practical and considerate of the time of day.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
