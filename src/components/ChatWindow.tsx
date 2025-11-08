@@ -83,6 +83,9 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
       let textBuffer = "";
       let streamDone = false;
       let assistantContent = "";
+      let toolCallId = "";
+      let toolCallName = "";
+      let toolCallArgs = "";
 
       // Create initial assistant message
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -111,6 +114,8 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
           try {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            const toolCalls = parsed.choices?.[0]?.delta?.tool_calls;
+            
             if (content) {
               assistantContent += content;
               // Update the last assistant message
@@ -122,6 +127,66 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
                 };
                 return updated;
               });
+            }
+
+            // Handle tool calls
+            if (toolCalls && toolCalls[0]) {
+              const toolCall = toolCalls[0];
+              if (toolCall.id) toolCallId = toolCall.id;
+              if (toolCall.function?.name) toolCallName = toolCall.function.name;
+              if (toolCall.function?.arguments) toolCallArgs += toolCall.function.arguments;
+            }
+
+            // Check for finish reason to execute tool
+            const finishReason = parsed.choices?.[0]?.finish_reason;
+            if (finishReason === "tool_calls" && toolCallName === "create_routine") {
+              try {
+                const args = JSON.parse(toolCallArgs);
+                console.log("Creating routine with args:", args);
+                
+                // Create the routine in the database
+                const { error: insertError } = await supabase
+                  .from('routines')
+                  .insert([{
+                    user_id: session.user.id,
+                    name: args.name,
+                    time: args.time,
+                    date: args.date,
+                    description: args.description || null,
+                    location: args.location || null,
+                  }]);
+
+                if (insertError) {
+                  console.error("Error creating routine:", insertError);
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = {
+                      role: "assistant",
+                      content: `I tried to create the routine, but there was an error: ${insertError.message}. Please try again.`,
+                    };
+                    return updated;
+                  });
+                } else {
+                  // Success - show confirmation message
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = {
+                      role: "assistant",
+                      content: `✅ Great! I've added "${args.name}" to your schedule for ${args.date} at ${args.time}${args.location ? ` at ${args.location}` : ''}. The page will refresh to show your new routine.`,
+                    };
+                    return updated;
+                  });
+                  
+                  toast.success(`Routine "${args.name}" created successfully!`);
+                  
+                  // Refresh the page after a short delay
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 2000);
+                }
+              } catch (parseError) {
+                console.error("Error parsing tool arguments:", parseError);
+              }
             }
           } catch {
             // Incomplete JSON, put it back

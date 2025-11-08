@@ -118,13 +118,55 @@ Your capabilities:
 - Help with time management strategies
 - Suggest productivity improvements
 - Answer questions about their current schedule
+- Create new routines when users ask you to add them
 
 ${userDataContext}
 
-Always address users warmly and reference their actual schedule when relevant. If they ask about their routines or schedule, use the data above to give specific, actionable advice.` 
+When users ask you to add, create, or schedule a routine, use the create_routine tool to add it to their schedule. Extract the routine details from their message (name, time, date, description, location if provided).
+
+For dates, if the user says "tomorrow", calculate tomorrow's date. If they say a day of the week, find the next occurrence. If no date is specified, ask them when they want to schedule it.
+
+Always address users warmly and reference their actual schedule when relevant.` 
           },
           ...messages,
         ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "create_routine",
+              description: "Create a new routine for the user. Call this when the user wants to add, create, or schedule a new routine.",
+              parameters: {
+                type: "object",
+                properties: {
+                  name: { 
+                    type: "string",
+                    description: "The name or title of the routine"
+                  },
+                  time: { 
+                    type: "string",
+                    description: "The time in HH:MM format (24-hour)"
+                  },
+                  date: { 
+                    type: "string",
+                    description: "The date in YYYY-MM-DD format"
+                  },
+                  description: { 
+                    type: "string",
+                    description: "Optional description of the routine"
+                  },
+                  location: { 
+                    type: "string",
+                    description: "Optional location for the routine"
+                  }
+                },
+                required: ["name", "time", "date"],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: "auto",
         stream: true,
       }),
     });
