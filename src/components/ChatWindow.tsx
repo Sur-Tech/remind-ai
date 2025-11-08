@@ -26,44 +26,8 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
-
-  // Load chat history on mount
-  useEffect(() => {
-    const loadChatHistory = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          setIsLoadingHistory(false);
-          return;
-        }
-
-        const { data: chatHistory, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('Error loading chat history:', error);
-        } else if (chatHistory && chatHistory.length > 0) {
-          // If we have history, replace the initial messages with loaded history
-          setMessages(chatHistory.map(msg => ({
-            role: msg.role as "user" | "assistant",
-            content: msg.content
-          })));
-        }
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
-
-    loadChatHistory();
-  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -392,13 +356,7 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
         {/* Messages */}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="space-y-4">
-            {isLoadingHistory ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                {messages.map((message, index) => (
+            {messages.map((message, index) => (
               <div
                 key={index}
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -413,16 +371,14 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
                   <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                 </div>
               </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <p className="text-sm text-muted-foreground">Thinking...</p>
-                    </div>
-                  </div>
-                )}
-              </>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Thinking...</p>
+                </div>
+              </div>
             )}
           </div>
         </ScrollArea>
