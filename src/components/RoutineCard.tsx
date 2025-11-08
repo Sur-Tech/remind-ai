@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Clock, Trash2, Pencil, Calendar, MapPin, Car, Navigation, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { formatTime12Hour } from "@/lib/utils";
 import { useState } from "react";
 import {
   Collapsible,
@@ -74,7 +75,7 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span className="text-sm font-medium">{routine.time}</span>
+              <span className="text-sm font-medium">{formatTime12Hour(routine.time)}</span>
             </div>
             {routine.location && (
               <div className="flex items-center gap-2">

@@ -349,9 +349,9 @@ const Index = () => {
                           {new Date(event.start_time).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(event.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                           {' - '}
-                          {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(event.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                         </div>
                       </div>
                     </div>

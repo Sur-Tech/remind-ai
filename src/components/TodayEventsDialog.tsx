@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { formatTime12Hour } from "@/lib/utils";
 
 interface Routine {
   id: string;
@@ -36,7 +37,7 @@ const EventItem = ({ routine }: { routine: Routine }) => {
           </h3>
           <Badge variant="secondary" className="flex items-center gap-1 font-mono">
             <Clock className="w-3 h-3" />
-            {routine.time}
+            {formatTime12Hour(routine.time)}
           </Badge>
         </div>
         

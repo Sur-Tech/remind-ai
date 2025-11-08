@@ -4,7 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, parseISO } from "date-fns";
 import { Clock, CalendarDays, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatTime12Hour } from "@/lib/utils";
 
 interface Routine {
   id: string;
@@ -113,7 +113,7 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
                           {routine.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {routine.time}
+                          {formatTime12Hour(routine.time)}
                         </p>
                         {routine.frequency && routine.frequency !== "once" && (
                           <p className="text-xs text-muted-foreground capitalize">
@@ -160,9 +160,9 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(event.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(event.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                             {' - '}
-                            {new Date(event.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(event.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                           </p>
                           {event.location && (
                             <p className="text-xs text-muted-foreground truncate">

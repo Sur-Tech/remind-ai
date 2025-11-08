@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { CalendarIcon, Repeat } from "lucide-react";
+import { CalendarIcon, Repeat, Clock, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bell } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatTime12Hour, formatTime24Hour } from "@/lib/utils";
 import { z } from "zod";
 import { toast } from "sonner";
 import { AddressAutocomplete } from "./AddressAutocomplete";
@@ -66,7 +66,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
   useEffect(() => {
     if (editingRoutine) {
       setName(editingRoutine.name);
-      setTime(editingRoutine.time);
+      setTime(formatTime12Hour(editingRoutine.time));
       setDate(parseISO(editingRoutine.date));
       setDescription(editingRoutine.description || "");
       setFrequency(editingRoutine.frequency || "once");
@@ -89,9 +89,12 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
       return;
     }
 
+    // Convert 12-hour time to 24-hour format for storage
+    const time24 = formatTime24Hour(time);
+
     const formData = {
       name: name.trim(),
-      time,
+      time: time24,
       date: format(date, 'yyyy-MM-dd'),
       description: description.trim() || undefined,
       frequency,
@@ -192,17 +195,20 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="time" className="text-foreground font-medium">
+            <Label htmlFor="time" className="text-foreground font-medium flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
               Time
             </Label>
             <Input
               id="time"
-              type="time"
+              type="text"
               value={time}
               onChange={(e) => setTime(e.target.value)}
+              placeholder="e.g., 9:00 AM or 2:30 PM"
               required
               className="border-input bg-background"
             />
+            <p className="text-xs text-muted-foreground">Format: 9:00 AM or 2:30 PM</p>
           </div>
         </div>
 
