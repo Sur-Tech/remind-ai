@@ -300,6 +300,50 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
                 } catch (parseError) {
                   console.error("Error parsing tool arguments:", parseError);
                 }
+              } else if (toolCallName === "get_weather") {
+                try {
+                  const args = JSON.parse(toolCallArgs);
+                  console.log("Getting weather with args:", args);
+                  
+                  // Call the weather edge function
+                  const { data: weatherData, error: weatherError } = await supabase.functions.invoke('get-weather', {
+                    body: { 
+                      location: args.location,
+                      datetime: args.datetime
+                    }
+                  });
+
+                  if (weatherError || !weatherData) {
+                    console.error("Error fetching weather:", weatherError);
+                    setMessages((prev) => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        role: "assistant",
+                        content: `I tried to get the weather information, but encountered an error. Please try again.`,
+                      };
+                      return updated;
+                    });
+                  } else {
+                    // Format the weather response
+                    const timeStr = args.datetime ? ` at ${new Date(args.datetime).toLocaleString()}` : ' currently';
+                    const weatherMessage = `🌤️ Weather in ${weatherData.location}${timeStr}:\n\n` +
+                      `Temperature: ${weatherData.temperature}°F (feels like ${weatherData.feelsLike}°F)\n` +
+                      `Conditions: ${weatherData.description}\n` +
+                      `Humidity: ${weatherData.humidity}%\n` +
+                      `Wind Speed: ${weatherData.windSpeed} mph`;
+                    
+                    setMessages((prev) => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = {
+                        role: "assistant",
+                        content: weatherMessage,
+                      };
+                      return updated;
+                    });
+                  }
+                } catch (parseError) {
+                  console.error("Error parsing tool arguments:", parseError);
+                }
               }
             }
           } catch {

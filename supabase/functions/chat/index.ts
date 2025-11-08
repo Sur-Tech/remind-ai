@@ -167,6 +167,18 @@ EXAMPLES:
 - "remove my homework on Nov 15" → Use delete_routine to remove the specific routine
 - "cancel my meeting tomorrow" → Use delete_routine with calculated tomorrow's date
 
+WEATHER QUERIES:
+When users ask about weather:
+1. Extract the location from their question (city name or address)
+2. If they ask about weather at a specific time/date (like "tomorrow at 5am"), parse the datetime and convert it to ISO format (YYYY-MM-DDTHH:mm:ss)
+3. Use the get_weather tool with the location and optional datetime
+4. Provide the weather information in a conversational way
+
+EXAMPLES:
+- "What's the weather in New York?" → Use get_weather with location only (current weather)
+- "What will the weather be tomorrow at 5am in Paris?" → Use get_weather with location and datetime
+- "Will it rain in London on November 15th at 3pm?" → Use get_weather with location and specific datetime
+
 DATE HANDLING:
 - Current date is ${new Date().toISOString().split('T')[0]}
 - If the user says "tomorrow", calculate tomorrow's date
@@ -274,6 +286,28 @@ Always address users warmly and reference their actual schedule when relevant.`
                   }
                 },
                 required: ["routine_name", "routine_date"],
+                additionalProperties: false
+              }
+            }
+          },
+          {
+            type: "function",
+            function: {
+              name: "get_weather",
+              description: "Get current weather or weather forecast for a specific location and time. Use this when users ask about weather conditions.",
+              parameters: {
+                type: "object",
+                properties: {
+                  location: {
+                    type: "string",
+                    description: "The city name, address, or location to get weather for (e.g., 'New York', 'London, UK', 'Paris, France')"
+                  },
+                  datetime: {
+                    type: "string",
+                    description: "Optional: ISO datetime string for weather forecast (e.g., '2024-11-10T05:00:00'). If not provided, returns current weather. Format: YYYY-MM-DDTHH:mm:ss"
+                  }
+                },
+                required: ["location"],
                 additionalProperties: false
               }
             }
