@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { useWeather } from "@/hooks/useWeather";
+import { WeatherDisplay } from "./WeatherDisplay";
 import { formatTime12Hour } from "@/lib/utils";
 
 interface Routine {
@@ -27,6 +29,7 @@ interface TodayEventsDialogProps {
 
 const EventItem = ({ routine }: { routine: Routine }) => {
   const { travelTime, loading } = useTravelTime(routine.location);
+  const { weather, loading: weatherLoading, error: weatherError } = useWeather(routine.location);
 
   return (
     <div className="p-4 rounded-lg border border-border/50 bg-card hover:bg-accent/10 transition-smooth">
@@ -60,6 +63,14 @@ const EventItem = ({ routine }: { routine: Routine }) => {
             <Car className="w-4 h-4 animate-pulse" />
             <span>Calculating travel time...</span>
           </div>
+        )}
+
+        {routine.location && (
+          <WeatherDisplay 
+            weather={weather} 
+            loading={weatherLoading} 
+            error={weatherError} 
+          />
         )}
         
         {routine.description && (

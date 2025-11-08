@@ -8,6 +8,7 @@ import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { CalendarConnection } from "@/components/CalendarConnection";
 import { AIRecommendations } from "@/components/AIRecommendations";
 import { ChatButton } from "@/components/ChatButton";
+import { CalendarEventItem } from "@/components/CalendarEventItem";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -328,34 +329,9 @@ const Index = () => {
           {calendarEvents.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-foreground">Upcoming Calendar Events</h2>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {calendarEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="p-4 rounded-lg bg-card border border-border hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">{event.title}</h3>
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                        )}
-                        {event.location && (
-                          <p className="text-sm text-muted-foreground mt-1">📍 {event.location}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-foreground">
-                          {new Date(event.start_time).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(event.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                          {' - '}
-                          {new Date(event.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <CalendarEventItem key={event.id} event={event} />
                 ))}
               </div>
             </div>

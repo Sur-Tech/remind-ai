@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isSameDay, parseISO } from "date-fns";
-import { Clock, CalendarDays, Sparkles } from "lucide-react";
+import { Clock, CalendarDays, Sparkles, MapPin, CloudRain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatTime12Hour } from "@/lib/utils";
+import { useWeather } from "@/hooks/useWeather";
+import { CalendarEventMini } from "./CalendarEventMini";
 
 interface Routine {
   id: string;
@@ -133,45 +135,11 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
                 {eventsForSelectedDate.map((event) => {
                   const isHoliday = isHolidayEvent(event.title);
                   return (
-                    <div
-                      key={event.id}
-                      className={cn(
-                        "p-3 rounded-lg border transition-smooth",
-                        isHoliday
-                          ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30 hover:from-amber-500/30 hover:to-orange-500/30"
-                          : "bg-primary/10 border-primary/20 hover:bg-primary/20"
-                      )}
-                    >
-                      <div className="flex items-start gap-2">
-                        {isHoliday ? (
-                          <Sparkles className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                        ) : (
-                          <CalendarDays className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {event.title}
-                            </p>
-                            {isHoliday && (
-                              <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
-                                Holiday
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(event.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            {' - '}
-                            {new Date(event.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                          </p>
-                          {event.location && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              📍 {event.location}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    <CalendarEventMini 
+                      key={event.id} 
+                      event={event} 
+                      isHoliday={isHoliday} 
+                    />
                   );
                 })}
               </div>
