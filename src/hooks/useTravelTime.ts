@@ -2,11 +2,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface Direction {
+  instruction: string;
+  distance: string;
+  duration: string;
+}
+
 interface TravelTime {
   duration: string;
   durationValue: number;
   distance: string;
   distanceValue: number;
+  startAddress?: string;
+  endAddress?: string;
+  directions?: Direction[];
 }
 
 export const useTravelTime = (destination: string | null | undefined, origin: string = 'current location') => {

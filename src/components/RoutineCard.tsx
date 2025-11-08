@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, Pencil, Calendar, MapPin, Car } from "lucide-react";
+import { Clock, Trash2, Pencil, Calendar, MapPin, Car, Navigation, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface RoutineCardProps {
   routine: {
@@ -26,6 +32,7 @@ interface RoutineCardProps {
 
 export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => {
   const { travelTime, loading, error } = useTravelTime(routine.location);
+  const [showDirections, setShowDirections] = useState(false);
 
   return (
     <Card className="p-5 shadow-soft border-border/50 bg-card hover:shadow-card transition-smooth group">
@@ -68,6 +75,30 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
           </div>
           {routine.description && (
             <p className="text-sm text-muted-foreground mt-2">{routine.description}</p>
+          )}
+          {travelTime?.directions && travelTime.directions.length > 0 && (
+            <Collapsible open={showDirections} onOpenChange={setShowDirections} className="mt-3">
+              <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-smooth">
+                <Navigation className="w-4 h-4" />
+                <span>Directions ({travelTime.directions.length} steps)</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showDirections ? 'rotate-180' : ''}`} />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-2">
+                {travelTime.directions.map((step, index) => (
+                  <div key={index} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">{step.instruction}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {step.distance} • {step.duration}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
         <div className="flex gap-2">

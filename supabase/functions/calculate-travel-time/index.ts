@@ -23,12 +23,12 @@ Deno.serve(async (req) => {
       throw new Error('Google Maps API key not configured')
     }
 
-    console.log(`Calculating travel time from "${origin}" to "${destination}"`)
+    console.log(`Calculating travel time and directions from "${origin}" to "${destination}"`)
 
-    // Use Google Maps Distance Matrix API
-    const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json')
-    url.searchParams.append('origins', origin)
-    url.searchParams.append('destinations', destination)
+    // Use Google Maps Directions API to get both travel time and turn-by-turn directions
+    const url = new URL('https://maps.googleapis.com/maps/api/directions/json')
+    url.searchParams.append('origin', origin)
+    url.searchParams.append('destination', destination)
     url.searchParams.append('mode', 'driving')
     url.searchParams.append('key', googleMapsApiKey)
 
@@ -41,24 +41,35 @@ Deno.serve(async (req) => {
       throw new Error(`Google Maps API error: ${data.status}${detail}`)
     }
 
-    const element = data.rows[0]?.elements[0]
-
-    if (!element || element.status !== 'OK') {
-      console.error('Route not found:', element?.status)
-      throw new Error('Could not calculate route')
+    const route = data.routes[0]
+    if (!route) {
+      console.error('No route found')
+      throw new Error('Could not find a route')
     }
 
-    const travelTime = {
-      duration: element.duration.text,
-      durationValue: element.duration.value, // in seconds
-      distance: element.distance.text,
-      distanceValue: element.distance.value, // in meters
+    const leg = route.legs[0]
+    
+    // Extract turn-by-turn directions
+    const directions = leg.steps.map((step: any) => ({
+      instruction: step.html_instructions.replace(/<[^>]*>/g, ''), // Remove HTML tags
+      distance: step.distance.text,
+      duration: step.duration.text,
+    }))
+
+    const travelData = {
+      duration: leg.duration.text,
+      durationValue: leg.duration.value, // in seconds
+      distance: leg.distance.text,
+      distanceValue: leg.distance.value, // in meters
+      startAddress: leg.start_address,
+      endAddress: leg.end_address,
+      directions: directions,
     }
 
-    console.log(`Travel time calculated: ${travelTime.duration} (${travelTime.distance})`)
+    console.log(`Travel time calculated: ${travelData.duration} (${travelData.distance}), ${directions.length} steps`)
 
     return new Response(
-      JSON.stringify(travelTime),
+      JSON.stringify(travelData),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
