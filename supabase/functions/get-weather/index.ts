@@ -131,7 +131,7 @@ serve(async (req) => {
       description: weatherInfo.description,
       icon: weatherInfo.icon,
       humidity: weatherData.current.relative_humidity_2m,
-      windSpeed: weatherData.current.wind_speed_10m,
+      windSpeed: Math.round(weatherData.current.wind_speed_10m * 2.237), // Convert m/s to mph
       location: resolvedName,
       country: resolvedCountry,
     };

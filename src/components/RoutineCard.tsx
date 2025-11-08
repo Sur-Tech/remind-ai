@@ -80,13 +80,18 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               <span className="text-sm font-medium">{formatTime12Hour(routine.time)}</span>
             </div>
             {weather && routine.location && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <img
-                  src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
-                  alt={weather.description}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm font-medium">{weather.temperature}°F</span>
+              <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <img
+                    src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
+                    alt={weather.description}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">{weather.temperature}°F</span>
+                </div>
+                <span className="text-sm font-medium capitalize">{weather.description}</span>
+                <span className="text-sm font-medium">Humidity: {weather.humidity}%</span>
+                <span className="text-sm font-medium">Wind: {weather.windSpeed} mph</span>
               </div>
             )}
             {weatherLoading && routine.location && (
