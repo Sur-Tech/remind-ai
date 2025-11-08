@@ -74,26 +74,26 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               <span className="text-sm font-medium">
                 {format(parseISO(routine.date), "MMM d, yyyy")}
               </span>
-              {weather && routine.location && (
-                <div className="flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                  <img
-                    src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
-                    alt={weather.description}
-                    className="w-5 h-5"
-                  />
-                  <span className="text-sm font-semibold">{weather.temperature}°C</span>
-                </div>
-              )}
-              {weatherLoading && routine.location && (
-                <div className="ml-2 flex items-center gap-1">
-                  <CloudRain className="w-4 h-4 animate-pulse text-muted-foreground" />
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               <span className="text-sm font-medium">{formatTime12Hour(routine.time)}</span>
             </div>
+            {weather && routine.location && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                <img
+                  src={`https://openweathermap.org/img/wn/${weather.icon}.png`}
+                  alt={weather.description}
+                  className="w-5 h-5"
+                />
+                <span className="text-sm font-semibold">{weather.temperature}°C</span>
+              </div>
+            )}
+            {weatherLoading && routine.location && (
+              <div className="flex items-center gap-1">
+                <CloudRain className="w-4 h-4 animate-pulse text-muted-foreground" />
+              </div>
+            )}
             {routine.location && (
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
