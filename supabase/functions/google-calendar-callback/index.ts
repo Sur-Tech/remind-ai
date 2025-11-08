@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     const error = url.searchParams.get('error')
 
     if (error) {
-      console.error('OAuth error:', error)
+      console.error('OAuth authorization error:', error)
       return new Response(
         `<html><body><script>window.close()</script><p>Authorization cancelled</p></body></html>`,
         { headers: { 'Content-Type': 'text/html' } }
@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
     }
 
     if (!code || !state) {
-      throw new Error('Missing code or state parameter')
+      console.error('Missing required OAuth parameters')
+      throw new Error('Invalid authorization request')
     }
 
     const supabaseClient = createClient(
@@ -52,10 +53,11 @@ Deno.serve(async (req) => {
     })
 
     const tokens = await tokenResponse.json()
-    console.log('Token exchange successful for user:', state)
+    console.log('Token exchange successful')
 
     if (tokens.error) {
-      throw new Error(`Token exchange failed: ${tokens.error}`)
+      console.error('Token exchange error:', tokens.error)
+      throw new Error('Failed to connect calendar')
     }
 
     // Get user email from Google
@@ -80,11 +82,11 @@ Deno.serve(async (req) => {
       })
 
     if (dbError) {
-      console.error('Database error:', dbError)
-      throw dbError
+      console.error('Failed to save calendar connection:', dbError)
+      throw new Error('Failed to save calendar connection')
     }
 
-    console.log('Calendar connection saved for user:', state)
+    console.log('Calendar connection saved successfully')
 
     // Return success page that closes the popup
     return new Response(
@@ -100,10 +102,9 @@ Deno.serve(async (req) => {
       { headers: { 'Content-Type': 'text/html' } }
     )
   } catch (error) {
-    console.error('Error in google-calendar-callback:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Calendar connection error:', error)
     return new Response(
-      `<html><body><p>Error: ${message}</p></body></html>`,
+      `<html><body><p>Failed to connect calendar. Please try again.</p></body></html>`,
       { headers: { 'Content-Type': 'text/html' } }
     )
   }

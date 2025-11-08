@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
 
     if (userError || !user) {
-      console.error('Auth error:', userError)
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.error('Authentication failed:', userError)
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -41,8 +41,8 @@ Deno.serve(async (req) => {
       .order('date', { ascending: true })
 
     if (routinesError) {
-      console.error('Error fetching routines:', routinesError)
-      throw routinesError
+      console.error('Database error fetching routines:', routinesError)
+      throw new Error('Failed to load your routines')
     }
 
     // Fetch user's calendar events
@@ -54,11 +54,11 @@ Deno.serve(async (req) => {
       .order('event_date', { ascending: true })
 
     if (eventsError) {
-      console.error('Error fetching events:', eventsError)
-      throw eventsError
+      console.error('Database error fetching events:', eventsError)
+      throw new Error('Failed to load your calendar events')
     }
 
-    console.log(`Analyzing ${routines?.length || 0} routines and ${events?.length || 0} events`)
+    console.log(`Processing recommendations for user data`)
 
     // Prepare context for AI
     const routineContext = routines?.map(r => 
@@ -97,12 +97,11 @@ Deno.serve(async (req) => {
     })
 
     if (!aiResponse.ok) {
-      const errorText = await aiResponse.text()
-      console.error('AI API error:', aiResponse.status, errorText)
+      console.error('AI service error:', aiResponse.status, await aiResponse.text())
       
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ 
-          error: 'Rate limit exceeded. Please try again in a moment.' 
+          error: 'Too many requests. Please try again in a moment.' 
         }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -111,14 +110,14 @@ Deno.serve(async (req) => {
       
       if (aiResponse.status === 402) {
         return new Response(JSON.stringify({ 
-          error: 'AI credits depleted. Please top up your workspace credits.' 
+          error: 'Service temporarily unavailable. Please contact support.' 
         }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
       
-      throw new Error(`AI API error: ${aiResponse.status}`)
+      throw new Error('AI service unavailable')
     }
 
     const aiData = await aiResponse.json()
@@ -138,8 +137,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('Error in ai-routine-recommendations:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Recommendation generation error:', error)
+    const message = error instanceof Error ? error.message : 'Failed to generate recommendations'
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

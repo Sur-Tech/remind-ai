@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
       .not('user_id', 'is', null);
 
     if (usersError) {
-      console.error('Error fetching users:', usersError);
-      throw usersError;
+      console.error('Database query error:', usersError);
+      throw new Error('Failed to fetch user data');
     }
 
     // Get unique user IDs
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     // Generate recommendations for each user
     for (const userId of uniqueUserIds) {
       try {
-        console.log(`Generating recommendations for user: ${userId}`);
+        console.log(`Processing user recommendations`);
 
         // Get user's routines
         const { data: routines, error: routinesError } = await supabase
@@ -104,8 +104,7 @@ Keep recommendations positive, encouraging, and specific to their schedule.`;
         });
 
         if (!aiResponse.ok) {
-          const errorText = await aiResponse.text();
-          console.error(`AI API error for user ${userId}:`, aiResponse.status, errorText);
+          console.error('AI service error:', aiResponse.status, await aiResponse.text());
           failureCount++;
           continue;
         }
@@ -125,15 +124,15 @@ Keep recommendations positive, encouraging, and specific to their schedule.`;
           });
 
         if (insertError) {
-          console.error(`Error storing recommendations for user ${userId}:`, insertError);
+          console.error('Failed to store recommendations:', insertError);
           failureCount++;
         } else {
-          console.log(`Successfully generated recommendations for user ${userId}`);
+          console.log('Successfully generated recommendations');
           successCount++;
         }
 
       } catch (error) {
-        console.error(`Error processing user ${userId}:`, error);
+        console.error('Error processing recommendations:', error);
         failureCount++;
       }
     }
@@ -153,9 +152,9 @@ Keep recommendations positive, encouraging, and specific to their schedule.`;
     });
 
   } catch (error) {
-    console.error('Error in generate-routine-recommendations function:', error);
+    console.error('Function execution error:', error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Failed to generate recommendations',
       success: false 
     }), {
       status: 500,

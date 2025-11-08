@@ -27,8 +27,8 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
 
     if (userError || !user) {
-      console.error('Auth error:', userError)
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.error('Authentication failed:', userError)
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
       .single()
 
     if (connError || !connection) {
-      console.error('No calendar connection found:', connError)
-      return new Response(JSON.stringify({ error: 'No calendar connection found' }), {
+      console.error('Calendar connection error:', connError)
+      return new Response(JSON.stringify({ error: 'Calendar not connected' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -67,7 +67,8 @@ Deno.serve(async (req) => {
 
       const refreshData = await refreshResponse.json()
       if (refreshData.error) {
-        throw new Error(`Token refresh failed: ${refreshData.error}`)
+        console.error('Token refresh error details:', refreshData.error)
+        throw new Error('Failed to refresh calendar connection')
       }
 
       accessToken = refreshData.access_token
@@ -102,7 +103,8 @@ Deno.serve(async (req) => {
     console.log(`Fetched ${eventsData.items?.length || 0} events`)
 
     if (eventsData.error) {
-      throw new Error(`Failed to fetch events: ${eventsData.error.message}`)
+      console.error('Google Calendar API error:', eventsData.error)
+      throw new Error('Failed to fetch calendar events')
     }
 
     // Store events in database
@@ -136,7 +138,7 @@ Deno.serve(async (req) => {
         })
     }
 
-    console.log(`Synced ${events.length} events for user:`, user.id)
+    console.log(`Synced ${events.length} events successfully`)
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -145,9 +147,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('Error in sync-google-calendar:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return new Response(JSON.stringify({ error: message }), {
+    console.error('Sync error:', error)
+    return new Response(JSON.stringify({ error: 'Failed to sync calendar events' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
