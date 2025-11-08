@@ -50,20 +50,9 @@ const playNotificationSound = () => {
 export const useNotifications = (routines: Routine[], calendarEvents: CalendarEvent[] = []) => {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [notifiedItems, setNotifiedItems] = useState<Set<string>>(new Set());
-  const [serviceWorkerRegistration, setServiceWorkerRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
-  // Register service worker
   useEffect(() => {
-    if ('serviceWorker' in navigator && 'Notification' in window) {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered:', registration);
-          setServiceWorkerRegistration(registration);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
-      
+    if ("Notification" in window) {
       setPermission(Notification.permission);
     }
   }, []);
@@ -80,20 +69,65 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
     }
   };
 
-  // Send routines and events to service worker
+  // Check for notifications every minute
   useEffect(() => {
-    if (permission !== "granted" || !serviceWorkerRegistration) return;
-    if (routines.length === 0 && calendarEvents.length === 0) return;
+    if (permission !== "granted") return;
 
-    // Send data to service worker
-    navigator.serviceWorker.controller?.postMessage({
-      type: 'SCHEDULE_NOTIFICATIONS',
-      routines,
-      calendarEvents
-    });
+    const checkNotifications = () => {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const currentDate = now.toISOString().split("T")[0];
 
-    console.log('Sent notification schedule to service worker');
-  }, [routines, calendarEvents, permission, serviceWorkerRegistration]);
+      // Check routines
+      routines.forEach((routine) => {
+        const routineKey = `routine-${routine.id}-${currentDate}`;
+        
+        if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
+          playNotificationSound();
+          new Notification("Routine Reminder", {
+            body: `Time for: ${routine.name}${routine.description ? `\n${routine.description}` : ""}`,
+            icon: "/favicon.ico",
+            tag: routineKey,
+          });
+          
+          sonnerToast.info(`Routine: ${routine.name}`, {
+            description: routine.description || "It's time for your routine!",
+          });
+          
+          setNotifiedItems((prev) => new Set(prev).add(routineKey));
+        }
+      });
+
+      // Check calendar events
+      calendarEvents.forEach((event) => {
+        const eventTime = new Date(event.start_time);
+        const eventTimeString = `${eventTime.getHours().toString().padStart(2, "0")}:${eventTime.getMinutes().toString().padStart(2, "0")}`;
+        const eventDate = eventTime.toISOString().split("T")[0];
+        const eventKey = `event-${event.id}-${eventDate}`;
+        
+        if (eventTimeString === currentTime && eventDate === currentDate && !notifiedItems.has(eventKey)) {
+          playNotificationSound();
+          new Notification("Calendar Event", {
+            body: `${event.title}${event.description ? `\n${event.description}` : ""}`,
+            icon: "/favicon.ico",
+            tag: eventKey,
+          });
+          
+          sonnerToast.info(`Event: ${event.title}`, {
+            description: event.description || "Your event is starting now!",
+          });
+          
+          setNotifiedItems((prev) => new Set(prev).add(eventKey));
+        }
+      });
+    };
+
+    // Check immediately and then every minute
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 60000);
+
+    return () => clearInterval(interval);
+  }, [permission, routines, calendarEvents, notifiedItems]);
 
   // Clear notified items at midnight
   useEffect(() => {
