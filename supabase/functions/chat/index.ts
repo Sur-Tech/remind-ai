@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,78 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
     console.log("Received chat request with messages:", messages);
+
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false,
+        },
+      }
+    );
+
+    // Get authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header required');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('Authentication failed:', userError);
+      throw new Error('Authentication required');
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Fetch user's routines
+    const { data: routines, error: routinesError } = await supabaseClient
+      .from('routines')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: true });
+
+    if (routinesError) {
+      console.error('Error fetching routines:', routinesError);
+    }
+
+    // Fetch user's calendar events
+    const { data: events, error: eventsError } = await supabaseClient
+      .from('calendar_events')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('event_date', new Date().toISOString().split('T')[0])
+      .order('event_date', { ascending: true });
+
+    if (eventsError) {
+      console.error('Error fetching events:', eventsError);
+    }
+
+    // Build context from user data
+    const routineContext = routines?.map(r => 
+      `- ${r.name} at ${r.time} on ${r.date}${r.description ? ': ' + r.description : ''}${r.location ? ' (Location: ' + r.location + ')' : ''}`
+    ).join('\n') || 'No routines currently scheduled';
+
+    const eventContext = events?.map(e => 
+      `- ${e.title} on ${new Date(e.start_time).toLocaleDateString()} at ${new Date(e.start_time).toLocaleTimeString()}${e.description ? ': ' + e.description : ''}${e.location ? ' (Location: ' + e.location + ')' : ''}`
+    ).join('\n') || 'No upcoming events';
+
+    const userDataContext = `
+USER'S CURRENT SCHEDULE:
+
+Routines:
+${routineContext}
+
+Calendar Events:
+${eventContext}
+
+Use this information to provide personalized advice about time management, scheduling, and routine optimization. You can reference specific routines or events when giving recommendations.`;
+
+    console.log('User context prepared with', routines?.length || 0, 'routines and', events?.length || 0, 'events');
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -31,7 +104,24 @@ serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: "You are a helpful AI assistant for a routine planning app. You help users manage their schedules, provide advice on time management, and answer questions about their routines. Be concise, friendly, and practical in your responses." 
+            content: `You are Robert, a friendly and helpful AI assistant specializing in routine planning and time management. 
+
+Your personality:
+- Professional yet approachable
+- Enthusiastic about helping users optimize their schedules
+- Proactive in suggesting improvements
+- Clear and concise in your advice
+
+Your capabilities:
+- Analyze user routines and calendar events
+- Provide personalized scheduling recommendations
+- Help with time management strategies
+- Suggest productivity improvements
+- Answer questions about their current schedule
+
+${userDataContext}
+
+Always address users warmly and reference their actual schedule when relevant. If they ask about their routines or schedule, use the data above to give specific, actionable advice.` 
           },
           ...messages,
         ],

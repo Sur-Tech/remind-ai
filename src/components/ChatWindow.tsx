@@ -20,7 +20,7 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm your AI assistant. How can I help you manage your routines today?",
+      content: "Hello! I'm Robert, your personal routine planning assistant. I can see your current schedule and help you optimize your time. How can I assist you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -184,8 +184,8 @@ export const ChatWindow = ({ isOpen, onClose }: ChatWindowProps) => {
               <MessageCircle className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">AI Assistant</h3>
-              <p className="text-xs text-muted-foreground">Always here to help</p>
+              <h3 className="font-semibold text-foreground">Robert</h3>
+              <p className="text-xs text-muted-foreground">Your Routine Assistant</p>
             </div>
           </div>
           <Button
