@@ -5,6 +5,7 @@ interface Routine {
   id: string;
   name: string;
   time: string;
+  date: string;
   description?: string;
   location?: string;
   travelTimeMinutes?: number;
@@ -82,19 +83,23 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
 
       // Check routines
       routines.forEach((routine) => {
+        // Only check routines for today
+        const today = new Date().toISOString().split('T')[0];
+        if (routine.date !== today) return;
+        
         const routineKey = `routine-${routine.id}-${currentDate}`;
         
-        // Calculate notification time: routine time - travel time - 5 minutes
+        // Calculate exact "leave by" time: routine time - travel time - 5 minutes
         const [hours, minutes] = routine.time.split(':').map(Number);
-        const routineDate = new Date();
-        routineDate.setHours(hours, minutes, 0, 0);
+        const routineDateTime = new Date();
+        routineDateTime.setHours(hours, minutes, 0, 0);
         
         // Subtract travel time (if available) + 5 minutes buffer
         const travelMinutes = routine.travelTimeMinutes || 0;
-        const notificationTime = new Date(routineDate.getTime() - (travelMinutes + 5) * 60000);
-        const notificationTimeString = `${notificationTime.getHours().toString().padStart(2, "0")}:${notificationTime.getMinutes().toString().padStart(2, "0")}`;
+        const leaveByTime = new Date(routineDateTime.getTime() - (travelMinutes + 5) * 60000);
+        const leaveByTimeString = `${leaveByTime.getHours().toString().padStart(2, "0")}:${leaveByTime.getMinutes().toString().padStart(2, "0")}`;
         
-        if (notificationTimeString === currentTime && !notifiedItems.has(routineKey)) {
+        if (leaveByTimeString === currentTime && !notifiedItems.has(routineKey)) {
           playNotificationSound();
           
           const travelInfo = routine.travelTimeMinutes 
