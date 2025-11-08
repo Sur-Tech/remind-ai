@@ -20,6 +20,7 @@ interface Routine {
   date: string;
   description?: string;
   frequency: string;
+  location?: string;
 }
 
 interface CalendarEvent {
@@ -133,6 +134,7 @@ const Index = () => {
             time: routine.time,
             date: routine.date,
             description: routine.description,
+            location: routine.location,
           },
         ])
         .select()
@@ -159,6 +161,7 @@ const Index = () => {
           time: routine.time,
           date: routine.date,
           description: routine.description,
+          location: routine.location,
         })
         .eq("id", routine.id);
 

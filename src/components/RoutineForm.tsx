@@ -19,7 +19,8 @@ const routineSchema = z.object({
   description: z.string().trim().max(500, "Description must be less than 500 characters").optional(),
   time: z.string().regex(/^\d{2}:\d{2}$/, "Invalid time format"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
-  frequency: z.enum(['once', 'daily', 'weekly', 'monthly'], { errorMap: () => ({ message: "Invalid frequency" }) })
+  frequency: z.enum(['once', 'daily', 'weekly', 'monthly'], { errorMap: () => ({ message: "Invalid frequency" }) }),
+  location: z.string().trim().max(200, "Location must be less than 200 characters").optional()
 });
 
 interface RoutineFormProps {
@@ -29,6 +30,7 @@ interface RoutineFormProps {
     date: string;
     description?: string;
     frequency: string;
+    location?: string;
   }) => void;
   onEditRoutine?: (routine: {
     id: string;
@@ -37,6 +39,7 @@ interface RoutineFormProps {
     date: string;
     description?: string;
     frequency: string;
+    location?: string;
   }) => void;
   editingRoutine?: {
     id: string;
@@ -45,6 +48,7 @@ interface RoutineFormProps {
     date: string;
     description?: string;
     frequency?: string;
+    location?: string;
   } | null;
   onCancelEdit?: () => void;
 }
@@ -55,6 +59,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
   const [date, setDate] = useState<Date>();
   const [description, setDescription] = useState("");
   const [frequency, setFrequency] = useState("once");
+  const [location, setLocation] = useState("");
 
   // Update form when editingRoutine changes
   useEffect(() => {
@@ -64,12 +69,14 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
       setDate(parseISO(editingRoutine.date));
       setDescription(editingRoutine.description || "");
       setFrequency(editingRoutine.frequency || "once");
+      setLocation(editingRoutine.location || "");
     } else {
       setName("");
       setTime("");
       setDate(undefined);
       setDescription("");
       setFrequency("once");
+      setLocation("");
     }
   }, [editingRoutine]);
 
@@ -87,6 +94,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
       date: format(date, 'yyyy-MM-dd'),
       description: description.trim() || undefined,
       frequency,
+      location: location.trim() || undefined,
     };
 
     // Validate input
@@ -112,6 +120,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
     setDate(undefined);
     setDescription("");
     setFrequency("once");
+    setLocation("");
   };
 
   const handleCancel = () => {
@@ -120,6 +129,7 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
     setDate(undefined);
     setDescription("");
     setFrequency("once");
+    setLocation("");
     onCancelEdit?.();
   };
 
@@ -211,6 +221,20 @@ export const RoutineForm = ({ onAddRoutine, onEditRoutine, editingRoutine, onCan
               <SelectItem value="monthly">Monthly</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="location" className="text-foreground font-medium">
+            Location (Optional)
+          </Label>
+          <Input
+            id="location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Meeting room, gym, coffee shop..."
+            maxLength={200}
+            className="border-input bg-background"
+          />
         </div>
 
         <div className="space-y-2">

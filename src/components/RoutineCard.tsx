@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Trash2, Pencil, Calendar } from "lucide-react";
+import { Clock, Trash2, Pencil, Calendar, MapPin } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 interface RoutineCardProps {
@@ -10,6 +10,7 @@ interface RoutineCardProps {
     time: string;
     date: string;
     description?: string;
+    location?: string;
   };
   onDelete: (id: string) => void;
   onEdit: (routine: {
@@ -18,6 +19,7 @@ interface RoutineCardProps {
     time: string;
     date: string;
     description?: string;
+    location?: string;
   }) => void;
 }
 
@@ -29,7 +31,7 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
           <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-smooth">
             {routine.name}
           </h3>
-          <div className="flex items-center gap-4 text-muted-foreground">
+          <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               <span className="text-sm font-medium">
@@ -40,6 +42,12 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
               <Clock className="w-4 h-4" />
               <span className="text-sm font-medium">{routine.time}</span>
             </div>
+            {routine.location && (
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm font-medium">{routine.location}</span>
+              </div>
+            )}
           </div>
           {routine.description && (
             <p className="text-sm text-muted-foreground mt-2">{routine.description}</p>

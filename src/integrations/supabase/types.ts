@@ -140,6 +140,7 @@ export type Database = {
           description: string | null
           frequency: string
           id: string
+          location: string | null
           name: string
           time: string
           updated_at: string
@@ -151,6 +152,7 @@ export type Database = {
           description?: string | null
           frequency?: string
           id?: string
+          location?: string | null
           name: string
           time: string
           updated_at?: string
@@ -162,6 +164,7 @@ export type Database = {
           description?: string | null
           frequency?: string
           id?: string
+          location?: string | null
           name?: string
           time?: string
           updated_at?: string

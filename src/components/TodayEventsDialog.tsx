@@ -1,5 +1,5 @@
 import { format, isToday, parseISO, startOfDay, isSameDay } from "date-fns";
-import { Calendar, Clock, FileText } from "lucide-react";
+import { Calendar, Clock, FileText, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ interface Routine {
   time: string;
   date: string;
   description?: string;
+  location?: string;
 }
 
 interface TodayEventsDialogProps {
@@ -80,6 +81,13 @@ export const TodayEventsDialog = ({ routines }: TodayEventsDialogProps) => {
                         {routine.time}
                       </Badge>
                     </div>
+                    
+                    {routine.location && (
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <p className="flex-1">{routine.location}</p>
+                      </div>
+                    )}
                     
                     {routine.description && (
                       <div className="flex items-start gap-2 text-sm text-muted-foreground">
