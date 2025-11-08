@@ -129,17 +129,6 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
           {routine.description && (
             <p className="text-sm text-muted-foreground mt-2">{routine.description}</p>
           )}
-          {recommendation && (
-            <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <span className="text-xs font-medium text-primary">💡</span>
-              <p className="text-sm text-primary font-medium flex-1">{recommendation}</p>
-            </div>
-          )}
-          {recLoading && weather && (
-            <div className="mt-3 p-3 rounded-lg bg-muted/50 animate-pulse">
-              <p className="text-sm text-muted-foreground">Getting AI recommendation...</p>
-            </div>
-          )}
           {travelTime?.directions && travelTime.directions.length > 0 && (
             <Collapsible open={showDirections} onOpenChange={setShowDirections} className="mt-3">
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-smooth">
@@ -163,6 +152,17 @@ export const RoutineCard = ({ routine, onDelete, onEdit }: RoutineCardProps) => 
                 ))}
               </CollapsibleContent>
             </Collapsible>
+          )}
+          {recommendation && (
+            <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <span className="text-xs font-medium text-primary">💡</span>
+              <p className="text-sm text-primary font-medium flex-1">{recommendation}</p>
+            </div>
+          )}
+          {recLoading && weather && (
+            <div className="mt-3 p-3 rounded-lg bg-muted/50 animate-pulse">
+              <p className="text-sm text-muted-foreground">Getting AI recommendation...</p>
+            </div>
           )}
         </div>
         <div className="flex gap-2">
