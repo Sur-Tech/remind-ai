@@ -79,6 +79,8 @@ Deno.serve(async (req) => {
         refresh_token: tokens.refresh_token,
         token_expiry: tokenExpiry,
         email: userInfo.email,
+      }, {
+        onConflict: 'user_id,provider'
       })
 
     if (dbError) {
