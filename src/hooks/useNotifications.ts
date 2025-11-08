@@ -6,6 +6,8 @@ interface Routine {
   name: string;
   time: string;
   description?: string;
+  location?: string;
+  travelTimeMinutes?: number;
 }
 
 interface CalendarEvent {
@@ -82,16 +84,33 @@ export const useNotifications = (routines: Routine[], calendarEvents: CalendarEv
       routines.forEach((routine) => {
         const routineKey = `routine-${routine.id}-${currentDate}`;
         
-        if (routine.time === currentTime && !notifiedItems.has(routineKey)) {
+        // Calculate notification time: routine time - travel time - 5 minutes
+        const [hours, minutes] = routine.time.split(':').map(Number);
+        const routineDate = new Date();
+        routineDate.setHours(hours, minutes, 0, 0);
+        
+        // Subtract travel time (if available) + 5 minutes buffer
+        const travelMinutes = routine.travelTimeMinutes || 0;
+        const notificationTime = new Date(routineDate.getTime() - (travelMinutes + 5) * 60000);
+        const notificationTimeString = `${notificationTime.getHours().toString().padStart(2, "0")}:${notificationTime.getMinutes().toString().padStart(2, "0")}`;
+        
+        if (notificationTimeString === currentTime && !notifiedItems.has(routineKey)) {
           playNotificationSound();
-          new Notification("Routine Reminder", {
-            body: `Time for: ${routine.name}${routine.description ? `\n${routine.description}` : ""}`,
+          
+          const travelInfo = routine.travelTimeMinutes 
+            ? `\n🚗 ${routine.travelTimeMinutes} min drive - Leave in 5 minutes!`
+            : '';
+          
+          new Notification("Time to Leave", {
+            body: `Get ready for: ${routine.name}${travelInfo}${routine.description ? `\n${routine.description}` : ""}`,
             icon: "/favicon.ico",
             tag: routineKey,
           });
           
-          sonnerToast.info(`Routine: ${routine.name}`, {
-            description: routine.description || "It's time for your routine!",
+          sonnerToast.info(`Time to Leave: ${routine.name}`, {
+            description: routine.travelTimeMinutes 
+              ? `${routine.travelTimeMinutes} min drive - Leave in 5 minutes!`
+              : "It's time for your routine!",
           });
           
           setNotifiedItems((prev) => new Set(prev).add(routineKey));

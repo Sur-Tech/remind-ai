@@ -9,6 +9,7 @@ interface Routine {
   description?: string;
   frequency: string;
   location?: string;
+  travelTimeMinutes?: number;
 }
 
 interface RoutineListProps {

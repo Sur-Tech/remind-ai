@@ -21,6 +21,7 @@ interface Routine {
   description?: string;
   frequency: string;
   location?: string;
+  travelTimeMinutes?: number;
 }
 
 interface CalendarEvent {
@@ -38,7 +39,8 @@ const Index = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { permission, requestPermission } = useNotifications(routines, calendarEvents);
+  const [routinesWithTravel, setRoutinesWithTravel] = useState<Routine[]>([]);
+  const { permission, requestPermission } = useNotifications(routinesWithTravel, calendarEvents);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -81,6 +83,56 @@ const Index = () => {
       fetchCalendarEvents();
     }
   }, [user]);
+
+  // Calculate travel times for routines with locations
+  useEffect(() => {
+    const calculateTravelTimes = async () => {
+      const updatedRoutines = await Promise.all(
+        routines.map(async (routine) => {
+          if (!routine.location) {
+            return routine;
+          }
+
+          try {
+            // Get current position
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000,
+              });
+            });
+
+            const origin = `${position.coords.latitude},${position.coords.longitude}`;
+
+            // Calculate travel time
+            const { data, error } = await supabase.functions.invoke('calculate-travel-time', {
+              body: { origin, destination: routine.location },
+            });
+
+            if (!error && data) {
+              return {
+                ...routine,
+                travelTimeMinutes: Math.ceil(data.durationValue / 60),
+              };
+            }
+          } catch (error) {
+            console.error('Error calculating travel time for routine:', error);
+          }
+
+          return routine;
+        })
+      );
+
+      setRoutinesWithTravel(updatedRoutines);
+    };
+
+    if (routines.length > 0) {
+      calculateTravelTimes();
+    } else {
+      setRoutinesWithTravel([]);
+    }
+  }, [routines]);
 
   const fetchRoutines = async () => {
     try {
