@@ -2,13 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, RefreshCw, Trash2 } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 export const CalendarConnection = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [connectionEmail, setConnectionEmail] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +17,6 @@ export const CalendarConnection = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'GOOGLE_CALENDAR_CONNECTED') {
         checkConnection();
-        syncCalendar();
         toast.success('Google Calendar connected successfully!');
       }
     };
@@ -100,57 +98,6 @@ export const CalendarConnection = () => {
     }
   };
 
-  const syncCalendar = async () => {
-    try {
-      setIsSyncing(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data, error } = await supabase.functions.invoke('sync-google-calendar', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success(`Synced ${data.syncedEvents} events from Google Calendar`);
-      
-      // Trigger a page refresh to show new events
-      window.location.reload();
-    } catch (error) {
-      console.error('Error syncing calendar:', error);
-      toast.error('Failed to sync calendar');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const disconnectCalendar = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('calendar_connections')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('provider', 'google');
-
-      if (error) throw error;
-
-      setIsConnected(false);
-      setConnectionEmail(null);
-      toast.success('Calendar disconnected');
-      
-      // Refresh to remove synced events
-      window.location.reload();
-    } catch (error) {
-      console.error('Error disconnecting calendar:', error);
-      toast.error('Failed to disconnect calendar');
-    }
-  };
-
   if (isLoading) {
     return null;
   }
@@ -172,27 +119,7 @@ export const CalendarConnection = () => {
         
         <div className="flex gap-2">
           {isConnected ? (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={syncCalendar}
-                disabled={isSyncing}
-                className="gap-2"
-              >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                Sync
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={disconnectCalendar}
-                className="gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Disconnect
-              </Button>
-            </>
+            <p className="text-sm text-muted-foreground">Connected</p>
           ) : (
             <Button onClick={connectCalendar} size="sm">
               Connect

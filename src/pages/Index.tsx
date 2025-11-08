@@ -8,7 +8,7 @@ import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { CalendarConnection } from "@/components/CalendarConnection";
 import { AIRecommendations } from "@/components/AIRecommendations";
 import { ChatButton } from "@/components/ChatButton";
-import { CalendarEventItem } from "@/components/CalendarEventItem";
+
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,23 +26,13 @@ interface Routine {
   travelTimeMinutes?: number;
 }
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start_time: string;
-  end_time: string;
-  event_date: string;
-  description?: string;
-  location?: string;
-}
 
 const Index = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [routinesWithTravel, setRoutinesWithTravel] = useState<Routine[]>([]);
-  const { permission, requestPermission } = useNotifications(routinesWithTravel, calendarEvents);
+  const { permission, requestPermission } = useNotifications(routinesWithTravel, []);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -78,11 +68,10 @@ const Index = () => {
     }
   }, [user]);
 
-  // Fetch routines and calendar events from database
+  // Fetch routines from database
   useEffect(() => {
     if (user) {
       fetchRoutines();
-      fetchCalendarEvents();
     }
   }, [user]);
 
@@ -158,24 +147,6 @@ const Index = () => {
     }
   };
 
-  const fetchCalendarEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("calendar_events")
-        .select("*")
-        .gte("event_date", new Date().toISOString().split('T')[0])
-        .order("event_date", { ascending: true })
-        .order("start_time", { ascending: true });
-
-      if (error) throw error;
-
-      if (data) {
-        setCalendarEvents(data);
-      }
-    } catch (error) {
-      console.error("Error fetching calendar events:", error);
-    }
-  };
 
   const handleAddRoutine = async (routine: Omit<Routine, "id">) => {
     try {
@@ -276,7 +247,7 @@ const Index = () => {
       <div className="flex gap-6 px-4 py-8 justify-center">
         {/* Calendar Section */}
         <div className="w-80 flex-shrink-0">
-          <RoutineCalendar routines={routines} calendarEvents={calendarEvents} />
+          <RoutineCalendar routines={routines} calendarEvents={[]} />
         </div>
 
         {/* Main Content */}
@@ -329,18 +300,6 @@ const Index = () => {
 
           {/* Calendar Connection */}
           <CalendarConnection />
-
-          {/* Calendar Events */}
-          {calendarEvents.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-foreground">Upcoming Calendar Events</h2>
-              <div className="space-y-3">
-                {calendarEvents.map((event) => (
-                  <CalendarEventItem key={event.id} event={event} />
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Add Routine Form */}
           <RoutineForm 
