@@ -34,14 +34,31 @@ serve(async (req) => {
     let resolvedName = '';
     let resolvedCountry = '';
 
-    // If user passed coordinates like "40.7,-74.3", use them directly
+    // If user passed coordinates like "40.7,-74.3", reverse geocode to get city name
     const coordMatch = String(location).match(/^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*$/);
     if (coordMatch) {
       lat = parseFloat(coordMatch[1]);
       lon = parseFloat(coordMatch[2]);
-      resolvedName = 'Selected location';
-      resolvedCountry = '';
       console.log(`Parsed coordinates directly: (${lat}, ${lon})`);
+      
+      // Reverse geocode to get the city name
+      const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${googleKey}`;
+      console.log(`Reverse geocoding coordinates: (${lat}, ${lon})`);
+      const rgRes = await fetch(reverseGeocodeUrl);
+      const rgJson = await rgRes.json();
+      
+      if (rgRes.ok && rgJson.status === 'OK' && rgJson.results && rgJson.results.length > 0) {
+        const best = rgJson.results[0];
+        const comps: Array<{ long_name: string; short_name: string; types: string[] }> = best.address_components || [];
+        const cityComp = comps.find(c => c.types.includes('locality') || c.types.includes('sublocality') || c.types.includes('postal_town'));
+        const countryComp = comps.find(c => c.types.includes('country'));
+        resolvedName = cityComp?.long_name || best.formatted_address.split(',')[0] || 'Your location';
+        resolvedCountry = countryComp?.short_name || '';
+        console.log(`Reverse geocoded: ${resolvedName}, ${resolvedCountry}`);
+      } else {
+        resolvedName = 'Your location';
+        resolvedCountry = '';
+      }
     } else {
       // Use Google Geocoding (more tolerant with full addresses)
       const googleGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${googleKey}`;
