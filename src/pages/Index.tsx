@@ -7,6 +7,7 @@ import { RoutineCalendar } from "@/components/RoutineCalendar";
 import { TodayEventsDialog } from "@/components/TodayEventsDialog";
 import { CalendarConnection } from "@/components/CalendarConnection";
 import { AIRecommendations } from "@/components/AIRecommendations";
+import { ChatButton } from "@/components/ChatButton";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -376,6 +377,9 @@ const Index = () => {
           />
         </div>
       </div>
+
+      {/* AI Chatbot */}
+      <ChatButton />
     </div>
   );
 };
