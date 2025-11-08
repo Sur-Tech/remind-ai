@@ -28,29 +28,15 @@ export const useWeather = (location: string | undefined) => {
       setError(null);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error("No session");
+        const { data, error: fnError } = await supabase.functions.invoke('get-weather', {
+          body: { location },
+        });
+
+        if (fnError) {
+          throw new Error(fnError.message || 'Failed to fetch weather');
         }
 
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-weather`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ location }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch weather");
-        }
-
-        const data = await response.json();
-        setWeather(data);
+        setWeather(data as WeatherData);
       } catch (err) {
         console.error("Weather fetch error:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch weather");
