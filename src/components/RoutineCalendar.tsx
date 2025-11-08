@@ -94,8 +94,8 @@ export const RoutineCalendar = ({ routines, calendarEvents }: RoutineCalendarPro
             hasHoliday: datesWithHolidays,
           }}
           modifiersClassNames={{
-            hasActivity: "bg-primary/20 font-bold has-activity",
-            hasHoliday: "bg-gradient-to-br from-amber-500/30 to-orange-500/30 font-bold text-foreground",
+            hasActivity: "has-activity",
+            hasHoliday: "has-activity",
           }}
         />
 
